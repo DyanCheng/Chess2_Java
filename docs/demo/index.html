@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chess² – The Next Level Chess Experience</title>
+  <meta name="description" content="Chess² là trò chơi cờ vua thế hệ mới với Function Cards, hệ thống phần thưởng và cửa hàng độc đáo." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-deep:    #0b0d14;
+      --bg-dark:    #111420;
+      --bg-card:    #161929;
+      --bg-glass:   rgba(22, 25, 41, 0.75);
+      --border:     rgba(255,255,255,0.07);
+      --gold:       #f5c842;
+      --gold-dim:   #c9a020;
+      --accent:     #7c5cfc;
+      --accent2:    #fc5c7d;
+      --green:      #4ade80;
+      --red:        #f87171;
+      --text:       #e8eaf6;
+      --muted:      #8892b0;
+      --white-sq:   #e8d5b7;
+      --black-sq:   #8b6045;
+      --highlight:  rgba(124,92,252,0.45);
+      --radius:     14px;
+      --shadow:     0 8px 32px rgba(0,0,0,0.5);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-deep);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-dark); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+
+    /* ─── NAVBAR ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px;
+      height: 64px;
+      background: rgba(11,13,20,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      font-family: 'Cinzel', serif;
+      font-size: 1.5rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--gold), #ff8c42);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      letter-spacing: 1px;
+    }
+    .nav-tabs { display: flex; gap: 4px; }
+    .nav-tab {
+      padding: 8px 18px; border-radius: 8px; cursor: pointer;
+      font-size: 0.875rem; font-weight: 500; color: var(--muted);
+      transition: all 0.2s; border: 1px solid transparent;
+      background: none;
+    }
+    .nav-tab:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    .nav-tab.active {
+      color: var(--text); border-color: var(--border);
+      background: var(--bg-card);
+    }
+    .nav-user { display: flex; align-items: center; gap: 12px; }
+    .nav-coins {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 20px;
+      background: rgba(245,200,66,0.12); border: 1px solid rgba(245,200,66,0.3);
+      font-size: 0.875rem; font-weight: 600; color: var(--gold);
+    }
+    .avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.875rem; cursor: pointer;
+    }
+
+    /* ─── SCREENS ─── */
+    .screen { display: none; padding-top: 80px; min-height: 100vh; }
+    .screen.active { display: block; }
+
+    /* ─── HERO SCREEN ─── */
+    #screen-home {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; min-height: 100vh;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124,92,252,0.15) 0%, transparent 70%);
+      text-align: center; padding: 80px 24px 40px;
+    }
+    #screen-home.active { display: flex; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 16px; border-radius: 20px;
+      background: rgba(124,92,252,0.15); border: 1px solid rgba(124,92,252,0.4);
+      font-size: 0.8rem; font-weight: 600; color: var(--accent);
+      margin-bottom: 28px; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .hero-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(3rem, 8vw, 6rem);
+      font-weight: 700; line-height: 1;
+      background: linear-gradient(135deg, #fff 30%, var(--gold) 70%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+    }
+    .hero-title sup {
+      font-size: 0.45em; vertical-align: super;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.15rem; color: var(--muted); max-width: 520px;
+      line-height: 1.7; margin-bottom: 40px;
+    }
+    .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+    .btn-primary {
+      padding: 14px 36px; border-radius: 12px; cursor: pointer;
+      font-size: 1rem; font-weight: 700; border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(124,92,252,0.4);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(124,92,252,0.55); }
+    .btn-secondary {
+      padding: 14px 36px; border-radius: 12px; cursor: pointer;
+      font-size: 1rem; font-weight: 600; border: 1px solid var(--border);
+      background: var(--bg-card); color: var(--text); transition: all 0.2s;
+    }
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); }
+
+    .feature-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px; max-width: 1000px; margin: 64px auto 0; width: 100%; padding: 0 24px;
+    }
+    .feature-card {
+      background: var(--bg-glass); backdrop-filter: blur(12px);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 28px 24px; text-align: left;
+      transition: all 0.25s; cursor: default;
+    }
+    .feature-card:hover {
+      border-color: rgba(124,92,252,0.4); transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(124,92,252,0.15);
+    }
+    .feat-icon { font-size: 2rem; margin-bottom: 14px; }
+    .feat-title { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .feat-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+    /* ─── GAME SCREEN ─── */
+    #screen-game.active { display: flex; }
+    #screen-game {
+      flex-direction: column; align-items: center;
+      padding: 80px 24px 40px; gap: 24px;
+      background: radial-gradient(ellipse 60% 40% at 50% 20%, rgba(124,92,252,0.08) 0%, transparent 60%);
+    }
+    .game-layout {
+      display: flex; gap: 24px; width: 100%; max-width: 1100px;
+      align-items: flex-start; flex-wrap: wrap; justify-content: center;
+    }
+    .game-left { display: flex; flex-direction: column; gap: 16px; flex: 0 0 auto; }
+
+    /* Player info */
+    .player-bar {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 16px;
+      width: 100%; max-width: 520px;
+    }
+    .player-avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; font-weight: 700; flex-shrink: 0;
+    }
+    .p1-avatar { background: linear-gradient(135deg, #f5c842, #ff8c42); }
+    .p2-avatar { background: linear-gradient(135deg, #7c5cfc, #fc5c7d); }
+    .player-info { flex: 1; }
+    .player-name { font-size: 0.95rem; font-weight: 700; }
+    .player-elo { font-size: 0.78rem; color: var(--muted); }
+    .timer {
+      font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 700;
+      color: var(--gold); letter-spacing: 2px; min-width: 70px; text-align: right;
+    }
+    .timer.danger { color: var(--red); animation: pulse 1s infinite; }
+
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+
+    /* Chess Board */
+    .board-container {
+      position: relative;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .board-wrapper {
+      border: 3px solid var(--gold-dim);
+      border-radius: 4px;
+      box-shadow: 0 0 40px rgba(245,200,66,0.2), var(--shadow);
+      overflow: hidden;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      width: min(480px, 90vw); height: min(480px, 90vw);
+    }
+    .sq {
+      display: flex; align-items: center; justify-content: center;
+      font-size: clamp(1.2rem, 4vw, 2rem);
+      cursor: pointer; position: relative;
+      transition: all 0.12s;
+      user-select: none;
+    }
+    .sq.light { background: var(--white-sq); }
+    .sq.dark  { background: var(--black-sq); }
+    .sq:hover { filter: brightness(1.15); }
+    .sq.selected { background: rgba(124,92,252,0.7) !important; }
+    .sq.valid-move::after {
+      content: ''; position: absolute;
+      width: 28%; height: 28%; border-radius: 50%;
+      background: rgba(124,92,252,0.65);
+      pointer-events: none;
+    }
+    .sq.valid-capture::after {
+      content: ''; position: absolute; inset: 0;
+      border: 3px solid rgba(252,92,125,0.75);
+      border-radius: 2px; pointer-events: none;
+    }
+    .sq.last-move { background: rgba(245,200,66,0.35) !important; }
+    .piece { pointer-events: none; line-height:1; }
+
+    .board-labels-col {
+      display: flex; flex-direction: column;
+      position: absolute; left: -22px; top: 0;
+      height: min(480px,90vw); justify-content: space-around;
+    }
+    .board-labels-row {
+      display: flex; flex-direction: row;
+      position: absolute; bottom: -22px; left: 0;
+      width: min(480px,90vw); justify-content: space-around;
+    }
+    .board-label { font-size: 0.7rem; color: var(--muted); font-weight: 600; }
+
+    /* Captured pieces */
+    .captured {
+      display: flex; flex-wrap: wrap; gap: 2px;
+      min-height: 28px; font-size: 1.1rem;
+    }
+
+    /* Right panel */
+    .game-right {
+      display: flex; flex-direction: column; gap: 16px;
+      flex: 1; min-width: 240px; max-width: 320px;
+    }
+    .panel {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px;
+    }
+    .panel-title {
+      font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--muted); margin-bottom: 14px;
+    }
+
+    /* Function Cards */
+    .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .fcard {
+      border-radius: 10px; padding: 12px 10px; cursor: pointer;
+      border: 1px solid var(--border); background: var(--bg-dark);
+      transition: all 0.2s; position: relative; text-align: center;
+    }
+    .fcard:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124,92,252,0.25); }
+    .fcard.active-card { border-color: var(--gold); background: rgba(245,200,66,0.08); }
+    .fcard.used { opacity: 0.4; pointer-events: none; }
+    .fcard-icon { font-size: 1.6rem; margin-bottom: 6px; }
+    .fcard-name { font-size: 0.72rem; font-weight: 700; color: var(--text); }
+    .fcard-desc { font-size: 0.62rem; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+    .fcard-cost {
+      position: absolute; top: 6px; right: 6px;
+      font-size: 0.65rem; font-weight: 700; color: var(--gold);
+    }
+
+    /* Move history */
+    .move-list {
+      max-height: 160px; overflow-y: auto;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 2px; font-size: 0.8rem;
+    }
+    .move-item {
+      padding: 4px 8px; border-radius: 6px;
+      color: var(--muted);
+    }
+    .move-item:nth-child(4n-3), .move-item:nth-child(4n-2) { background: rgba(255,255,255,0.03); }
+    .move-item span { color: var(--text); font-weight: 600; }
+    .move-num { color: var(--muted); font-size: 0.7rem; }
+
+    /* Status bar */
+    .status-bar {
+      background: var(--bg-glass); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 18px;
+      text-align: center; font-size: 0.9rem; font-weight: 600;
+      color: var(--accent); letter-spacing: 0.5px;
+    }
+
+    /* ─── SHOP SCREEN ─── */
+    #screen-shop.active { display: block; }
+    #screen-shop { padding: 80px 24px 40px; }
+    .page-header { text-align: center; margin-bottom: 48px; }
+    .page-title {
+      font-family: 'Cinzel', serif; font-size: 2.2rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--gold), #ff8c42);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    .page-sub { color: var(--muted); font-size: 0.95rem; }
+
+    .shop-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 32px; }
+    .shop-tab {
+      padding: 8px 22px; border-radius: 8px; cursor: pointer;
+      font-size: 0.875rem; font-weight: 600; color: var(--muted);
+      border: 1px solid var(--border); background: var(--bg-card);
+      transition: all 0.2s;
+    }
+    .shop-tab.active, .shop-tab:hover {
+      color: var(--text); border-color: var(--accent); background: rgba(124,92,252,0.15);
+    }
+
+    .shop-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px; max-width: 1100px; margin: 0 auto;
+    }
+    .shop-item {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px 18px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 12px; transition: all 0.25s; cursor: pointer; text-align: center;
+    }
+    .shop-item:hover {
+      border-color: rgba(124,92,252,0.5); transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(124,92,252,0.2);
+    }
+    .shop-item.rare { border-color: rgba(245,200,66,0.4); }
+    .shop-item.rare:hover { box-shadow: 0 12px 32px rgba(245,200,66,0.2); }
+    .item-rarity {
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; padding: 3px 10px; border-radius: 20px;
+    }
+    .rarity-common { background: rgba(148,163,184,0.15); color: #94a3b8; }
+    .rarity-rare   { background: rgba(124,92,252,0.15); color: var(--accent); }
+    .rarity-epic   { background: rgba(245,200,66,0.15); color: var(--gold); }
+    .item-icon { font-size: 3rem; }
+    .item-name { font-size: 1rem; font-weight: 700; }
+    .item-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+    .item-price {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 1rem; font-weight: 700; color: var(--gold);
+    }
+    .btn-buy {
+      width: 100%; padding: 10px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none; color: #fff; font-weight: 700; cursor: pointer;
+      font-size: 0.875rem; transition: all 0.2s;
+    }
+    .btn-buy:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    /* ─── PROFILE SCREEN ─── */
+    #screen-profile.active { display: block; }
+    #screen-profile { padding: 80px 24px 40px; }
+    .profile-layout {
+      display: grid; grid-template-columns: 300px 1fr; gap: 24px;
+      max-width: 1100px; margin: 0 auto; align-items: start;
+    }
+    @media(max-width:768px) { .profile-layout { grid-template-columns: 1fr; } }
+    .profile-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 32px 24px;
+      text-align: center;
+    }
+    .profile-avatar-lg {
+      width: 96px; height: 96px; border-radius: 50%; margin: 0 auto 16px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; font-weight: 700;
+      border: 3px solid var(--gold-dim);
+      box-shadow: 0 0 24px rgba(124,92,252,0.4);
+    }
+    .profile-username { font-size: 1.3rem; font-weight: 800; margin-bottom: 4px; }
+    .profile-title { font-size: 0.85rem; color: var(--gold); font-weight: 600; margin-bottom: 20px; }
+    .profile-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .stat-box {
+      background: var(--bg-dark); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 10px; text-align: center;
+    }
+    .stat-val { font-size: 1.4rem; font-weight: 800; color: var(--text); }
+    .stat-key { font-size: 0.72rem; color: var(--muted); margin-top: 4px; font-weight: 600; }
+    .rank-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 20px; border-radius: 20px;
+      background: linear-gradient(135deg, rgba(245,200,66,0.15), rgba(255,140,66,0.15));
+      border: 1px solid rgba(245,200,66,0.35);
+      font-weight: 700; font-size: 0.9rem; color: var(--gold);
+    }
+
+    .profile-right { display: flex; flex-direction: column; gap: 20px; }
+    .chart-bar { display: flex; flex-direction: column; gap: 10px; }
+    .bar-row { display: flex; align-items: center; gap: 12px; }
+    .bar-label { width: 60px; font-size: 0.82rem; color: var(--muted); text-align: right; }
+    .bar-track {
+      flex: 1; height: 10px; border-radius: 5px;
+      background: rgba(255,255,255,0.06); overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%; border-radius: 5px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width 1s ease;
+    }
+    .bar-val { width: 40px; font-size: 0.82rem; font-weight: 700; color: var(--text); }
+
+    .match-history { display: flex; flex-direction: column; gap: 8px; }
+    .match-row {
+      display: flex; align-items: center; gap: 16px;
+      padding: 12px 16px; border-radius: 10px;
+      background: var(--bg-dark); border: 1px solid var(--border);
+    }
+    .match-result {
+      font-size: 0.75rem; font-weight: 800; padding: 4px 12px;
+      border-radius: 20px; min-width: 56px; text-align: center;
+    }
+    .win  { background: rgba(74,222,128,0.15); color: var(--green); }
+    .lose { background: rgba(248,113,113,0.15); color: var(--red); }
+    .draw { background: rgba(148,163,184,0.15); color: #94a3b8; }
+    .match-opp { flex: 1; font-size: 0.875rem; font-weight: 600; }
+    .match-elo { font-size: 0.8rem; font-weight: 700; }
+    .elo-up   { color: var(--green); }
+    .elo-down { color: var(--red); }
+    .match-time { font-size: 0.75rem; color: var(--muted); }
+
+    /* ─── TOAST ─── */
+    .toast-container {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .toast {
+      padding: 14px 20px; border-radius: 12px; font-size: 0.875rem; font-weight: 600;
+      background: var(--bg-card); border: 1px solid var(--border);
+      box-shadow: var(--shadow); backdrop-filter: blur(16px);
+      animation: slideIn 0.3s ease; max-width: 300px;
+    }
+    @keyframes slideIn { from { transform: translateX(100px); opacity:0; } to { transform: translateX(0); opacity:1; } }
+    .toast.success { border-color: rgba(74,222,128,0.4); color: var(--green); }
+    .toast.info    { border-color: rgba(124,92,252,0.4); color: var(--accent); }
+    .toast.gold    { border-color: rgba(245,200,66,0.4); color: var(--gold); }
+    .toast.warning { border-color: rgba(248,113,113,0.4); color: var(--red); }
+
+    /* ─── MODAL ─── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 2000;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 40px; max-width: 480px; width: 90%;
+      text-align: center; box-shadow: var(--shadow);
+      animation: popIn 0.3s ease;
+    }
+    @keyframes popIn { from { transform: scale(0.85); opacity:0; } to { transform: scale(1); opacity:1; } }
+    .modal-icon { font-size: 4rem; margin-bottom: 20px; }
+    .modal-title { font-family: 'Cinzel', serif; font-size: 1.8rem; font-weight: 700; margin-bottom: 12px; }
+    .modal-desc { color: var(--muted); font-size: 0.95rem; line-height: 1.7; margin-bottom: 28px; }
+    .modal-btns { display: flex; gap: 12px; justify-content: center; }
+
+    /* ─── RESPONSIVE ─── */
+    @media(max-width:640px) {
+      .game-right { max-width: 100%; }
+      .cards-grid { grid-template-columns: 1fr 1fr 1fr 1fr; }
+      nav { padding: 0 16px; }
+      .nav-tabs { gap: 2px; }
+      .nav-tab { padding: 6px 10px; font-size: 0.78rem; }
+    }
+
+    /* ─── GLOW ANIMATIONS ─── */
+    @keyframes glow {
+      0%,100% { box-shadow: 0 0 20px rgba(124,92,252,0.3); }
+      50%      { box-shadow: 0 0 40px rgba(124,92,252,0.6); }
+    }
+    .glow-anim { animation: glow 2s infinite; }
+
+    .hidden { display: none !important; }
+    .auth-screen {
+      position: fixed; inset: 0; z-index: 3000; display: flex;
+      align-items: center; justify-content: center; padding: 24px;
+      background: radial-gradient(ellipse at top, rgba(124,92,252,.2), transparent 55%), var(--bg-deep);
+    }
+    .auth-card, .lobby-card, .waiting-card {
+      width: min(460px, 100%); padding: 32px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 20px; box-shadow: var(--shadow);
+    }
+    .auth-card h1, .lobby-card h2, .waiting-card h2 {
+      font-family: 'Cinzel', serif; margin-bottom: 10px;
+    }
+    .auth-card > p, .lobby-card > p, .waiting-card > p {
+      color: var(--muted); line-height: 1.6; margin-bottom: 20px;
+    }
+    .auth-form { display: grid; gap: 12px; }
+    .auth-form label { color: var(--muted); font-size: .85rem; }
+    .auth-form input {
+      width: 100%; padding: 12px; margin-top: 6px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--bg-dark); color: var(--text);
+    }
+    .auth-form .btn-primary { width: 100%; margin-top: 6px; }
+    .auth-switch { margin-top: 18px; text-align: center; color: var(--muted); }
+    .auth-switch button, .logout-btn {
+      border: 0; background: none; color: var(--gold); cursor: pointer; font: inherit;
+    }
+    .auth-error { color: var(--red); min-height: 20px; font-size: .85rem; }
+    .demo-note { margin: 18px 0 0 !important; font-size: .75rem; }
+    .lobby-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 20px; max-width: 900px; margin: 0 auto;
+    }
+    .lobby-card { width: auto; }
+    .lobby-card .btn-primary, .lobby-card .btn-secondary { width: 100%; margin-top: 12px; }
+    .lobby-icon { font-size: 2rem; margin-bottom: 12px; }
+    .waiting-card { margin: 8vh auto; text-align: center; }
+    .waiting-spinner {
+      width: 42px; height: 42px; margin: 10px auto 20px;
+      border: 4px solid rgba(255,255,255,.15); border-top-color: var(--gold);
+      border-radius: 50%; animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .leaderboard { max-width: 820px; margin: 0 auto; overflow: hidden; }
+    .leader-row {
+      display: grid; grid-template-columns: 60px 1fr 100px;
+      align-items: center; gap: 12px; padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .leader-row:last-child { border-bottom: 0; }
+    .leader-row.me { background: rgba(124,92,252,.12); }
+    .leader-rank { color: var(--gold); font-weight: 800; }
+    .leader-name { font-weight: 700; overflow-wrap: anywhere; }
+    .leader-elo { color: var(--muted); text-align: right; }
+    @media(max-width:640px) {
+      .auth-card, .lobby-card, .waiting-card { padding: 24px; }
+      .leader-row { grid-template-columns: 42px 1fr 76px; padding: 12px; }
+      nav { gap: 8px; }
+      .nav-tabs { overflow-x: auto; }
+      .nav-tab { white-space: nowrap; }
+    }
+  </style>
+</head>
+<body>
+
+<section class="auth-screen" id="auth-screen" aria-label="Đăng nhập Chess²">
+  <div class="auth-card">
+    <h1>♟ Chess²</h1>
+    <p id="auth-description">Đăng nhập để lưu hồ sơ demo trên thiết bị này.</p>
+    <form class="auth-form" id="login-form" onsubmit="handleAuthSubmit(event,'login')">
+      <label>Tên người chơi
+        <input id="login-username" autocomplete="username" required maxlength="24" />
+      </label>
+      <label>Mật khẩu
+        <input id="login-password" type="password" autocomplete="current-password" required />
+      </label>
+      <div class="auth-error" id="login-error" role="alert"></div>
+      <button class="btn-primary" type="submit">Đăng nhập</button>
+    </form>
+    <form class="auth-form hidden" id="register-form" onsubmit="handleAuthSubmit(event,'register')">
+      <label>Tên người chơi
+        <input id="register-username" autocomplete="username" required minlength="3" maxlength="24" />
+      </label>
+      <label>Mật khẩu (ít nhất 6 ký tự)
+        <input id="register-password" type="password" autocomplete="new-password" required minlength="6" />
+      </label>
+      <div class="auth-error" id="register-error" role="alert"></div>
+      <button class="btn-primary" type="submit">Tạo tài khoản demo</button>
+    </form>
+    <div class="auth-switch">
+      <span id="auth-switch-label">Chưa có tài khoản?</span>
+      <button type="button" id="auth-switch-button" onclick="toggleAuthMode()">Đăng ký</button>
+    </div>
+    <p class="demo-note">Bản demo lưu dữ liệu ngay trong trình duyệt; chưa có máy chủ, đăng nhập an toàn hay PvP trực tuyến.</p>
+  </div>
+</section>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="logo">Chess²</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tab-home"    onclick="switchTab('home')">🏠 Trang chủ</button>
+    <button class="nav-tab"        id="tab-lobby"   onclick="switchTab('lobby')">🎮 Sảnh chờ</button>
+    <button class="nav-tab"        id="tab-game"    onclick="switchTab('game')">♟️ Chơi</button>
+    <button class="nav-tab"        id="tab-leaderboard" onclick="switchTab('leaderboard')">🏆 Xếp hạng</button>
+    <button class="nav-tab"        id="tab-shop"    onclick="switchTab('shop')">🛒 Cửa hàng</button>
+    <button class="nav-tab"        id="tab-profile" onclick="switchTab('profile')">👤 Hồ sơ</button>
+  </div>
+  <div class="nav-user">
+    <div class="nav-coins" id="nav-coins-display">💰 <span id="coin-display">2,450</span></div>
+    <div class="avatar" id="nav-avatar" onclick="switchTab('profile')">DT</div>
+    <button class="logout-btn" onclick="logout()">Thoát</button>
+  </div>
+</nav>
+
+<!-- ─── HOME ─── -->
+<section class="screen active" id="screen-home">
+  <div class="hero-badge">✨ Phiên bản Demo 1.0</div>
+  <h1 class="hero-title">Chess<sup>²</sup></h1>
+  <p class="hero-sub">Cờ vua thế hệ mới với Function Cards ma thuật, hệ thống phần thưởng độc đáo và trải nghiệm chiến thuật chưa từng có.</p>
+  <div class="hero-btns">
+    <button class="btn-primary" onclick="switchTab('lobby')">🎮 Chơi ngay</button>
+    <button class="btn-secondary" onclick="switchTab('shop')">🛒 Cửa hàng</button>
+  </div>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feat-icon">🃏</div>
+      <div class="feat-title">Function Cards</div>
+      <div class="feat-desc">Sử dụng các lá bài đặc biệt để biến đổi quân cờ, đóng băng đối thủ hoặc thay đổi ô cờ!</div>
+    </div>
+    <div class="feature-card">
+      <div class="feat-icon">⚡</div>
+      <div class="feat-title">Đấu 2 người</div>
+      <div class="feat-desc">Chơi luân phiên trên cùng thiết bị. PvP trực tuyến cần backend và sẽ bổ sung sau.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feat-icon">🏆</div>
+      <div class="feat-title">Hệ thống ELO</div>
+      <div class="feat-desc">Leo rank từ Tân thủ lên Kỳ thủ Vàng với hệ thống xếp hạng ELO chính xác.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feat-icon">🎁</div>
+      <div class="feat-title">Phần thưởng hàng ngày</div>
+      <div class="feat-desc">Nhận coins, function cards và skin quân cờ độc quyền qua nhiệm vụ hàng ngày.</div>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="screen-lobby">
+  <div class="page-header">
+    <h2 class="page-title">🎮 Sảnh chờ</h2>
+    <p class="page-sub">Chọn đối thủ để bắt đầu một ván cờ</p>
+  </div>
+  <div class="lobby-grid">
+    <article class="lobby-card">
+      <div class="lobby-icon">🤖</div>
+      <h2>Đấu với Bot</h2>
+      <p>Đối đầu bot demo. Bot hiện chọn nước đi ngẫu nhiên, ưu tiên ăn quân.</p>
+      <button class="btn-primary" onclick="startMatch('bot')">Tìm trận với Bot</button>
+    </article>
+    <article class="lobby-card">
+      <div class="lobby-icon">♟️</div>
+      <h2>Đấu 2 người</h2>
+      <p>Chơi luân phiên trên cùng một thiết bị. Chưa kết nối người chơi trực tuyến.</p>
+      <button class="btn-secondary" onclick="startMatch('local')">Chơi cùng máy</button>
+    </article>
+  </div>
+</section>
+
+<section class="screen" id="screen-waiting">
+  <div class="waiting-card">
+    <div class="waiting-spinner" aria-hidden="true"></div>
+    <h2>Đang chuẩn bị ván đấu...</h2>
+    <p id="waiting-message">Đang tìm đối thủ</p>
+    <button class="btn-secondary" onclick="cancelMatchmaking()">Hủy</button>
+  </div>
+</section>
+
+<!-- ─── GAME ─── -->
+<section class="screen" id="screen-game">
+  <div class="status-bar" id="game-mode-label">Đấu với Bot</div>
+  <!-- Opponent bar -->
+  <div class="game-layout">
+    <div class="game-left">
+      <div class="player-bar">
+        <div class="player-avatar p2-avatar" id="black-player-avatar">🤖</div>
+        <div class="player-info">
+          <div class="player-name" id="black-player-name">Magnus_Bot</div>
+          <div class="player-elo" id="black-player-elo">ELO 1840 • Quân Đen</div>
+        </div>
+        <div class="captured" id="captured-white"></div>
+        <div class="timer" id="timer-black">08:47</div>
+      </div>
+
+      <!-- Board -->
+      <div class="board-container">
+        <div class="board-labels-col" id="col-labels"></div>
+        <div class="board-wrapper">
+          <div class="board" id="chess-board"></div>
+        </div>
+        <div class="board-labels-row" id="row-labels"></div>
+      </div>
+
+      <!-- Player bar -->
+      <div class="player-bar">
+        <div class="player-avatar p1-avatar">DT</div>
+        <div class="player-info">
+          <div class="player-name" id="white-player-name">DyanCheng</div>
+          <div class="player-elo" id="white-player-elo">ELO 1620 • Quân Trắng</div>
+        </div>
+        <div class="captured" id="captured-black"></div>
+        <div class="timer" id="timer-white">09:55</div>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="game-right">
+      <div class="status-bar" id="game-status">♟️ Lượt của bạn – Chọn quân cờ</div>
+
+      <div class="panel" id="cards-panel">
+        <div class="panel-title">🃏 Function Cards của bạn</div>
+        <div class="cards-grid" id="cards-grid"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">📜 Lịch sử nước đi</div>
+        <div class="move-list" id="move-list"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">⚙️ Điều khiển</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <button class="btn-secondary" style="width:100%;padding:10px;border-radius:9px;cursor:pointer;font-size:0.875rem;font-weight:600;" onclick="resetGame()">🔄 Ván mới</button>
+          <button class="btn-secondary" style="width:100%;padding:10px;border-radius:9px;cursor:pointer;font-size:0.875rem;font-weight:600;border-color:rgba(248,113,113,0.4);color:#f87171;" onclick="resignGame()">🏳️ Đầu hàng</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="screen-leaderboard">
+  <div class="page-header">
+    <h2 class="page-title">🏆 Bảng xếp hạng</h2>
+    <p class="page-sub">Người chơi demo trên thiết bị này và các kỳ thủ mẫu</p>
+  </div>
+  <div class="panel leaderboard" id="leaderboard-list" aria-live="polite"></div>
+</section>
+
+<!-- ─── SHOP ─── -->
+<section class="screen" id="screen-shop">
+  <div class="page-header">
+    <h2 class="page-title">🛒 Cửa hàng</h2>
+    <p class="page-sub">Mua function cards, skin quân cờ và vật phẩm đặc biệt</p>
+  </div>
+  <div class="shop-tabs">
+    <button class="shop-tab active" onclick="filterShop('all', this)">Tất cả</button>
+    <button class="shop-tab" onclick="filterShop('cards', this)">Function Cards</button>
+    <button class="shop-tab" onclick="filterShop('skins', this)">Skin quân cờ</button>
+    <button class="shop-tab" onclick="filterShop('bundles', this)">Gói ưu đãi</button>
+  </div>
+  <div class="shop-grid" id="shop-grid"></div>
+</section>
+
+<!-- ─── PROFILE ─── -->
+<section class="screen" id="screen-profile">
+  <div class="page-header">
+    <h2 class="page-title">👤 Hồ sơ cá nhân</h2>
+    <p class="page-sub">Thống kê và lịch sử trận đấu của bạn</p>
+  </div>
+  <div class="profile-layout">
+    <div>
+      <div class="profile-card">
+        <div class="profile-avatar-lg">DT</div>
+        <div class="profile-username" id="profile-username">DyanCheng</div>
+        <div class="profile-title" id="profile-title">⚔️ Kỳ thủ Bạc</div>
+        <div class="profile-stats">
+          <div class="stat-box"><div class="stat-val" id="profile-elo" style="color:var(--gold)">1000</div><div class="stat-key">ELO Rating</div></div>
+          <div class="stat-box"><div class="stat-val" id="profile-games">0</div><div class="stat-key">Trận đấu</div></div>
+          <div class="stat-box"><div class="stat-val" id="profile-wins" style="color:var(--green)">0</div><div class="stat-key">Thắng</div></div>
+          <div class="stat-box"><div class="stat-val" id="profile-losses" style="color:var(--red)">0</div><div class="stat-key">Thua</div></div>
+          <div class="stat-box"><div class="stat-val" id="profile-coins">500</div><div class="stat-key">Coins</div></div>
+          <div class="stat-box"><div class="stat-val" id="profile-win-rate">0%</div><div class="stat-key">Tỉ lệ thắng</div></div>
+        </div>
+        <div class="rank-badge" id="profile-rank">🏅 Hạng mới</div>
+      </div>
+    </div>
+
+    <div class="profile-right">
+      <div class="panel">
+        <div class="panel-title">📊 Thống kê nước đi yêu thích</div>
+        <div class="chart-bar" id="move-chart"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">🕹️ Lịch sử trận đấu gần đây</div>
+        <div class="match-history" id="match-history"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-icon" id="modal-icon">🎉</div>
+    <div class="modal-title" id="modal-title">Chúc mừng!</div>
+    <div class="modal-desc" id="modal-desc">Bạn đã hoàn thành ván đấu.</div>
+    <div class="modal-btns">
+      <button class="btn-primary" onclick="closeModal(); resetGame()">🔄 Ván mới</button>
+      <button class="btn-secondary" onclick="closeModal()">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let coins = 500;
+let currentUser = null;
+let gameMode = 'bot';
+let selectedSq = null;
+let validMoves = [];
+let currentTurn = 'w';
+let moveHistory = [];
+let gameOver = false;
+let lastMove = null;
+let capturedByWhite = [];
+let capturedByBlack = [];
+let timers = { w: 595, b: 527 };
+let activeTimer = 'w';
+let timerInterval = null;
+let botTimeout = null;
+let selectedCard = null;
+let matchmakingTimeout = null;
+
+const USERS_STORAGE_KEY = 'chess2.demo.users.v1';
+const SESSION_STORAGE_KEY = 'chess2.demo.session.v1';
+
+// ═══════════════════════════════════════════════
+//  CHESS ENGINE (simplified)
+// ═══════════════════════════════════════════════
+const PIECES = {
+  wK:'♔', wQ:'♕', wR:'♖', wB:'♗', wN:'♘', wP:'♙',
+  bK:'♚', bQ:'♛', bR:'♜', bB:'♝', bN:'♞', bP:'♟'
+};
+const PIECE_VALUES = { P:1, N:3, B:3, R:5, Q:9, K:0 };
+
+let board = [
+  ['bR','bN','bB','bQ','bK','bB','bN','bR'],
+  ['bP','bP','bP','bP','bP','bP','bP','bP'],
+  [null,null,null,null,null,null,null,null],
+  [null,null,null,null,null,null,null,null],
+  [null,null,null,null,null,null,null,null],
+  [null,null,null,null,null,null,null,null],
+  ['wP','wP','wP','wP','wP','wP','wP','wP'],
+  ['wR','wN','wB','wQ','wK','wB','wN','wR']
+];
+
+function pieceColor(p) { return p ? p[0] : null; }
+function pieceType(p)  { return p ? p[1] : null; }
+
+function getMoves(r, c, brd) {
+  const p = brd[r][c]; if (!p) return [];
+  const col = pieceColor(p); const typ = pieceType(p);
+  const moves = [];
+  const inBounds = (r,c) => r>=0&&r<8&&c>=0&&c<8;
+  const canGo = (r,c) => inBounds(r,c) && pieceColor(brd[r][c]) !== col;
+  const slide = (dr, dc) => {
+    let nr=r+dr, nc=c+dc;
+    while(inBounds(nr,nc)) {
+      if(brd[nr][nc]) { if(pieceColor(brd[nr][nc])!==col) moves.push([nr,nc]); break; }
+      moves.push([nr,nc]); nr+=dr; nc+=dc;
+    }
+  };
+  if(typ==='P') {
+    const dir = col==='w'?-1:1;
+    if(inBounds(r+dir,c) && !brd[r+dir][c]) {
+      moves.push([r+dir,c]);
+      const start = col==='w'?6:1;
+      if(r===start && !brd[r+2*dir][c]) moves.push([r+2*dir,c]);
+    }
+    [-1,1].forEach(dc=>{ if(inBounds(r+dir,c+dc) && brd[r+dir][c+dc] && pieceColor(brd[r+dir][c+dc])!==col) moves.push([r+dir,c+dc]); });
+  }
+  if(typ==='N') { [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(([dr,dc])=>{ if(canGo(r+dr,c+dc)) moves.push([r+dr,c+dc]); }); }
+  if(typ==='B'||typ==='Q') { [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([dr,dc])=>slide(dr,dc)); }
+  if(typ==='R'||typ==='Q') { [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dr,dc])=>slide(dr,dc)); }
+  if(typ==='K') { for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++) if(dr||dc) if(canGo(r+dr,c+dc)) moves.push([r+dr,c+dc]); }
+  return moves;
+}
+
+function colToFile(c) { return 'abcdefgh'[c]; }
+function toNotation(fromR,fromC,toR,toC,piece,capture) {
+  const t = pieceType(piece);
+  const pr = t==='P' ? '' : t;
+  const cap = capture ? 'x' : '';
+  return `${pr}${cap}${colToFile(toC)}${8-toR}`;
+}
+
+function doMove(fromR, fromC, toR, toC) {
+  const piece = board[fromR][fromC];
+  const captured = board[toR][toC];
+  const notation = toNotation(fromR,fromC,toR,toC,piece,!!captured);
+
+  if(captured) {
+    if(pieceColor(captured)==='b') capturedByWhite.push(captured);
+    else capturedByBlack.push(captured);
+    if(pieceType(captured)==='K') {
+      const winner = currentTurn;
+      setTimeout(()=>endGame(winner), 200);
+    }
+  }
+
+  // Promotion
+  if(pieceType(piece)==='P' && (toR===0||toR===7)) {
+    board[toR][toC] = pieceColor(piece)+'Q';
+  } else {
+    board[toR][toC] = piece;
+  }
+  board[fromR][fromC] = null;
+
+  lastMove = [fromR,fromC,toR,toC];
+  moveHistory.push({ notation, color: currentTurn, move: `${colToFile(fromC)}${8-fromR}-${colToFile(toC)}${8-toR}` });
+  currentTurn = currentTurn==='w' ? 'b' : 'w';
+  activeTimer = currentTurn;
+  selectedSq = null; validMoves = [];
+  renderBoard(); renderMoves(); renderCaptured();
+  updateStatus();
+
+  if(gameMode==='bot' && currentTurn==='b' && !gameOver) scheduleBotMove();
+}
+
+function scheduleBotMove() {
+  clearTimeout(botTimeout);
+  botTimeout = setTimeout(()=>{
+    botTimeout = null;
+    botMove();
+  }, 700 + Math.random()*600);
+}
+
+function botMove() {
+  if(gameOver || gameMode!=='bot' || currentTurn!=='b') return;
+  const moves = [];
+  for(let r=0;r<8;r++) for(let c=0;c<8;c++) {
+    if(pieceColor(board[r][c])==='b') {
+      getMoves(r,c,board).forEach(([tr,tc])=>moves.push({r,c,tr,tc,piece:board[r][c]}));
+    }
+  }
+  if(!moves.length) return;
+  // Prefer captures
+  const captures = moves.filter(m=>board[m.tr][m.tc]);
+  const pick = captures.length ? captures[Math.floor(Math.random()*captures.length)] : moves[Math.floor(Math.random()*moves.length)];
+  doMove(pick.r,pick.c,pick.tr,pick.tc);
+}
+
+function endGame(winner) {
+  if(gameOver) return;
+  gameOver = true; clearInterval(timerInterval);
+  const isWin = winner==='w';
+  if(gameMode==='bot') {
+    currentUser.wins += isWin ? 1 : 0;
+    currentUser.losses += isWin ? 0 : 1;
+    currentUser.elo = Math.max(100, currentUser.elo + (isWin ? 18 : -12));
+    const reward = isWin ? 150 : 0;
+    coins += reward;
+    currentUser.coins = coins;
+    currentUser.matches.unshift({
+      result: isWin ? 'win' : 'lose',
+      opp: 'Magnus_Bot',
+      elo: isWin ? '+18' : '-12',
+      time: 'Vừa xong'
+    });
+    saveCurrentUser();
+    updateAccountDisplay();
+    renderProfile();
+    renderLeaderboard();
+    showToast(isWin ? '💰 +150 Coins!' : 'Cố lên, thử ván khác nhé!', isWin ? 'gold' : 'info');
+  }
+  const title = gameMode==='local'
+    ? (isWin ? 'Trắng thắng!' : 'Đen thắng!')
+    : (isWin ? 'Bạn thắng!' : 'Bạn thua!');
+  showModal(isWin?'🏆':'😔', title,
+    gameMode==='local'
+      ? 'Ván đấu cùng máy đã kết thúc.'
+      : (isWin ? 'Xuất sắc! Bạn nhận +18 ELO và +150 Coins.' : 'Đừng nản lòng! Bạn bị trừ 12 ELO.'));
+}
+
+function resignGame() {
+  if(gameOver) return;
+  endGame(currentTurn==='w'?'b':'w');
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER BOARD
+// ═══════════════════════════════════════════════
+function renderBoard() {
+  const el = document.getElementById('chess-board'); el.innerHTML = '';
+  for(let r=0;r<8;r++) {
+    for(let c=0;c<8;c++) {
+      const sq = document.createElement('div');
+      sq.className = 'sq ' + ((r+c)%2===0?'light':'dark');
+      sq.dataset.r = r; sq.dataset.c = c;
+      if(lastMove && (
+        (r===lastMove[0]&&c===lastMove[1])||(r===lastMove[2]&&c===lastMove[3])
+      )) sq.classList.add('last-move');
+      if(selectedSq && selectedSq[0]===r && selectedSq[1]===c) sq.classList.add('selected');
+      if(validMoves.some(([vr,vc])=>vr===r&&vc===c)) {
+        sq.classList.add(board[r][c] ? 'valid-capture' : 'valid-move');
+      }
+      if(board[r][c]) {
+        const span = document.createElement('span');
+        span.className = 'piece'; span.textContent = PIECES[board[r][c]];
+        sq.appendChild(span);
+      }
+      sq.addEventListener('click', ()=>onSquareClick(r,c));
+      el.appendChild(sq);
+    }
+  }
+}
+
+function renderLabels() {
+  const cols = document.getElementById('col-labels'); cols.innerHTML = '';
+  const rows = document.getElementById('row-labels'); rows.innerHTML = '';
+  for(let i=0;i<8;i++) {
+    const cl = document.createElement('div'); cl.className='board-label'; cl.textContent=8-i;
+    cols.appendChild(cl);
+    const rl = document.createElement('div'); rl.className='board-label'; rl.textContent='abcdefgh'[i];
+    rows.appendChild(rl);
+  }
+}
+
+function renderCaptured() {
+  document.getElementById('captured-white').textContent = capturedByWhite.map(p=>PIECES[p]).join('');
+  document.getElementById('captured-black').textContent = capturedByBlack.map(p=>PIECES[p]).join('');
+}
+
+function renderMoves() {
+  const el = document.getElementById('move-list'); el.innerHTML = '';
+  moveHistory.forEach((m, i) => {
+    const div = document.createElement('div');
+    div.className = 'move-item';
+    if(i%2===0) div.innerHTML = `<span class="move-num">${Math.floor(i/2)+1}.</span> <span>${m.notation}</span>`;
+    else div.innerHTML = `<span>${m.notation}</span>`;
+    el.appendChild(div);
+  });
+  el.scrollTop = el.scrollHeight;
+}
+
+// ═══════════════════════════════════════════════
+//  CLICK HANDLER
+// ═══════════════════════════════════════════════
+function onSquareClick(r, c) {
+  if(gameOver || (gameMode==='bot' && currentTurn!=='w')) return;
+
+  if(selectedCard && currentTurn==='w') {
+    applyCard(selectedCard, r, c);
+    selectedCard = null;
+    document.querySelectorAll('.fcard').forEach(el=>el.classList.remove('active-card'));
+    return;
+  }
+
+  if(selectedSq) {
+    const [sr, sc] = selectedSq;
+    if(validMoves.some(([vr,vc])=>vr===r&&vc===c)) {
+      doMove(sr, sc, r, c);
+      return;
+    }
+  }
+
+  if(board[r][c] && pieceColor(board[r][c])===currentTurn) {
+    selectedSq = [r,c];
+    validMoves = getMoves(r, c, board);
+    renderBoard();
+  } else {
+    selectedSq = null; validMoves = [];
+    renderBoard();
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  FUNCTION CARDS
+// ═══════════════════════════════════════════════
+const CARDS_DATA = [
+  { id:'freeze',   icon:'❄️',  name:'Đóng băng',  desc:'Đóng băng 1 quân địch 1 lượt', cost:80  },
+  { id:'shield',   icon:'🛡️', name:'Khiên phép',  desc:'Bảo vệ 1 quân khỏi bị ăn',     cost:120 },
+  { id:'swap',     icon:'🔄', name:'Hoán đổi',    desc:'Đổi chỗ 2 quân ta với nhau',    cost:60  },
+  { id:'promote',  icon:'⭐', name:'Phong cấp',   desc:'Phong tốt thành Hậu ngay',      cost:200 },
+  { id:'teleport', icon:'🌀', name:'Dịch chuyển', desc:'Di chuyển tới ô bất kỳ',        cost:150 },
+  { id:'clone',    icon:'👥', name:'Nhân bản',    desc:'Tạo bản sao quân Tốt',          cost:100 },
+];
+let cardUsed = {};
+
+function renderCards() {
+  const el = document.getElementById('cards-grid'); el.innerHTML = '';
+  CARDS_DATA.forEach(card => {
+    const div = document.createElement('div');
+    div.className = 'fcard' + (cardUsed[card.id]?' used':'');
+    div.id = 'card-' + card.id;
+    div.innerHTML = `
+      <div class="fcard-cost">💰${card.cost}</div>
+      <div class="fcard-icon">${card.icon}</div>
+      <div class="fcard-name">${card.name}</div>
+      <div class="fcard-desc">${card.desc}</div>
+    `;
+    div.onclick = () => activateCard(card);
+    el.appendChild(div);
+  });
+}
+
+function activateCard(card) {
+  if(cardUsed[card.id] || gameOver) return;
+  if(coins < card.cost) { showToast('💸 Không đủ coins!','warning'); return; }
+  if(currentTurn !== 'w') { showToast('⏳ Đợi lượt của bạn!','info'); return; }
+  selectedCard = card;
+  document.querySelectorAll('.fcard').forEach(el=>el.classList.remove('active-card'));
+  document.getElementById('card-'+card.id).classList.add('active-card');
+  document.getElementById('game-status').textContent = `${card.icon} ${card.name}: Nhấp vào ô cờ để áp dụng`;
+  showToast(`${card.icon} Chọn ô để dùng [${card.name}]`, 'info');
+}
+
+function applyCard(card, r, c) {
+  coins -= card.cost; updateCoinDisplay();
+  currentUser.coins = coins;
+  saveCurrentUser();
+  cardUsed[card.id] = true;
+  document.getElementById('card-'+card.id).classList.add('used');
+
+  switch(card.id) {
+    case 'freeze':
+      if(board[r][c] && pieceColor(board[r][c])==='b') {
+        showToast(`❄️ Đóng băng ${PIECES[board[r][c]]}!`, 'success');
+        setTimeout(()=>{ /* unfreeze after bot skips */ }, 1500);
+      } else showToast('❌ Chọn quân địch!','warning');
+      break;
+    case 'shield':
+      showToast('🛡️ Quân được bảo vệ 1 lượt!','success'); break;
+    case 'swap':
+      showToast('🔄 Chọn 2 quân để đổi chỗ!','info'); break;
+    case 'promote':
+      for(let cc=0;cc<8;cc++) { if(board[6][cc]==='wP') { board[6][cc]='wQ'; break; } }
+      renderBoard(); showToast('⭐ Tốt đã thành Hậu!','gold'); break;
+    case 'teleport':
+      if(board[r][c] && pieceColor(board[r][c])==='w') {
+        selectedSq = [r,c]; validMoves = [];
+        for(let tr=0;tr<8;tr++) for(let tc=0;tc<8;tc++)
+          if(!board[tr][tc]||pieceColor(board[tr][tc])==='b') validMoves.push([tr,tc]);
+        renderBoard(); showToast('🌀 Chọn điểm đến!','info');
+      }
+      break;
+    case 'clone':
+      const empties = [];
+      for(let tr=0;tr<8;tr++) for(let tc=0;tc<8;tc++) if(!board[tr][tc]) empties.push([tr,tc]);
+      if(empties.length) { const [tr,tc]=empties[Math.floor(Math.random()*empties.length)]; board[tr][tc]='wP'; renderBoard(); showToast('👥 Tốt được nhân bản!','gold'); }
+      break;
+  }
+  updateStatus();
+  renderCards();
+}
+
+// ═══════════════════════════════════════════════
+//  TIMER
+// ═══════════════════════════════════════════════
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(()=>{
+    timers[activeTimer]--;
+    updateTimerDisplay();
+    if(timers[activeTimer] <= 0) { clearInterval(timerInterval); endGame(activeTimer==='w'?'b':'w'); }
+  }, 1000);
+}
+
+function formatTime(s) {
+  const m = Math.floor(s/60); const sec = s%60;
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function updateTimerDisplay() {
+  const wEl = document.getElementById('timer-white');
+  const bEl = document.getElementById('timer-black');
+  wEl.textContent = formatTime(timers.w);
+  bEl.textContent = formatTime(timers.b);
+  wEl.className = 'timer' + (timers.w < 30 ? ' danger' : '');
+  bEl.className = 'timer' + (timers.b < 30 ? ' danger' : '');
+}
+
+// ═══════════════════════════════════════════════
+//  SHOP
+// ═══════════════════════════════════════════════
+const SHOP_ITEMS = [
+  { cat:'cards',   icon:'❄️',  name:'Đóng băng x3',        desc:'3 lần sử dụng kỹ năng đóng băng', price:200, rarity:'common'  },
+  { cat:'cards',   icon:'⭐',  name:'Phong cấp tức thì',    desc:'Phong bất kỳ tốt thành Hậu',      price:450, rarity:'rare'   },
+  { cat:'cards',   icon:'🔥',  name:'Ngọn lửa hủy diệt',   desc:'Xóa 1 quân địch bất kỳ',           price:800, rarity:'epic'  },
+  { cat:'skins',   icon:'👑',  name:'Quân Vàng Hoàng Gia', desc:'Skin quân cờ vàng óng ánh',        price:1200,rarity:'epic'  },
+  { cat:'skins',   icon:'💎',  name:'Quân Kim Cương',       desc:'Skin quân cờ kim cương',           price:2000,rarity:'epic'  },
+  { cat:'skins',   icon:'🌊',  name:'Quân Thủy Tinh',       desc:'Skin quân cờ trong suốt',          price:600, rarity:'rare'  },
+  { cat:'skins',   icon:'🌙',  name:'Quân Bóng Đêm',        desc:'Skin quân cờ tối đen huyền bí',    price:900, rarity:'rare'  },
+  { cat:'bundles', icon:'🎁',  name:'Starter Pack',          desc:'3 Function Cards + 500 Coins',    price:350, rarity:'rare'  },
+  { cat:'bundles', icon:'🎰',  name:'Mystery Box',           desc:'Ngẫu nhiên nhận 1 vật phẩm hiếm', price:250, rarity:'common'},
+  { cat:'cards',   icon:'🛡️', name:'Khiên Vĩnh Cửu',       desc:'Bảo vệ 1 quân cả trận đấu',       price:600, rarity:'rare'  },
+  { cat:'bundles', icon:'💰',  name:'Gói 1000 Coins',        desc:'Nạp thêm 1000 Coins vào ví',      price:500, rarity:'common'},
+  { cat:'skins',   icon:'⚡',  name:'Quân Sét Điện',         desc:'Skin quân cờ hiệu ứng sét',       price:1500,rarity:'epic'  },
+];
+let shopFilter = 'all';
+
+function renderShop() {
+  const el = document.getElementById('shop-grid'); el.innerHTML = '';
+  SHOP_ITEMS.filter(i=>shopFilter==='all'||i.cat===shopFilter).forEach(item=>{
+    const div = document.createElement('div');
+    div.className = 'shop-item' + (item.rarity==='epic'?' rare':'');
+    div.innerHTML = `
+      <span class="item-rarity rarity-${item.rarity}">${item.rarity==='epic'?'✨ Epic':item.rarity==='rare'?'⚡ Rare':'Common'}</span>
+      <div class="item-icon">${item.icon}</div>
+      <div class="item-name">${item.name}</div>
+      <div class="item-desc">${item.desc}</div>
+      <div class="item-price">💰 ${item.price.toLocaleString()}</div>
+      <button class="btn-buy" onclick="buyItem('${item.name}',${item.price})">Mua ngay</button>
+    `;
+    el.appendChild(div);
+  });
+}
+
+function filterShop(cat, btn) {
+  shopFilter = cat;
+  document.querySelectorAll('.shop-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderShop();
+}
+
+function buyItem(name, price) {
+  if(coins < price) { showToast('💸 Không đủ coins!','warning'); return; }
+  coins -= price; updateCoinDisplay();
+  currentUser.coins = coins;
+  saveCurrentUser();
+  showToast(`✅ Đã mua [${name}]! 💰 -${price}`, 'success');
+}
+
+// ═══════════════════════════════════════════════
+//  PROFILE
+// ═══════════════════════════════════════════════
+function renderProfile() {
+  const moveData = [
+    { label:'e4', pct:78 },{ label:'d4', pct:62 },{ label:'Nf3', pct:55 },
+    { label:'c4', pct:42 },{ label:'g3', pct:28 },
+  ];
+  const chartEl = document.getElementById('move-chart'); chartEl.innerHTML = '';
+  moveData.forEach(m=>{
+    chartEl.innerHTML += `
+      <div class="bar-row">
+        <div class="bar-label">${m.label}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${m.pct}%"></div></div>
+        <div class="bar-val">${m.pct}%</div>
+      </div>`;
+  });
+
+  const matches = [
+    ...(currentUser && currentUser.matches ? currentUser.matches : [])
+  ].slice(0, 8);
+  const histEl = document.getElementById('match-history'); histEl.innerHTML = '';
+  if(!matches.length) {
+    histEl.textContent = 'Chưa có ván đấu. Hãy bắt đầu ở sảnh chờ!';
+    histEl.style.color = 'var(--muted)';
+  } else {
+    histEl.style.color = '';
+  }
+  matches.forEach(m=>{
+    const eloClass = m.elo.startsWith('+')?'elo-up':'elo-down';
+    const row = document.createElement('div');
+    row.className = 'match-row';
+    const result = document.createElement('div');
+    result.className = `match-result ${m.result}`;
+    result.textContent = m.result==='win'?'THẮNG':m.result==='lose'?'THUA':'HÒA';
+    const opponent = document.createElement('div');
+    opponent.className = 'match-opp';
+    opponent.textContent = `vs ${m.opp}`;
+    const elo = document.createElement('div');
+    elo.className = `match-elo ${eloClass}`;
+    elo.textContent = `${m.elo} ELO`;
+    const time = document.createElement('div');
+    time.className = 'match-time';
+    time.textContent = m.time;
+    row.append(result, opponent, elo, time);
+    histEl.appendChild(row);
+  });
+}
+
+function getStoredUsers() {
+  const raw = localStorage.getItem(USERS_STORAGE_KEY);
+  if(!raw) return [];
+  const users = JSON.parse(raw);
+  if(!Array.isArray(users)) throw new Error('Dữ liệu tài khoản demo không hợp lệ.');
+  return users;
+}
+
+function saveUsers(users) {
+  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+}
+
+async function passwordHash(password, salt) {
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: 120000, hash: 'SHA-256' }, key, 256
+  );
+  return Array.from(new Uint8Array(bits), byte=>byte.toString(16).padStart(2,'0')).join('');
+}
+
+function setAuthMode(mode) {
+  const registering = mode==='register';
+  document.getElementById('login-form').classList.toggle('hidden', registering);
+  document.getElementById('register-form').classList.toggle('hidden', !registering);
+  document.getElementById('auth-description').textContent = registering
+    ? 'Tạo tài khoản demo để lưu tiến trình trên thiết bị này.'
+    : 'Đăng nhập để mở sảnh chờ và hồ sơ demo.';
+  document.getElementById('auth-switch-label').textContent = registering ? 'Đã có tài khoản?' : 'Chưa có tài khoản?';
+  const button = document.getElementById('auth-switch-button');
+  button.textContent = registering ? 'Đăng nhập' : 'Đăng ký';
+}
+
+function toggleAuthMode() {
+  const registering = document.getElementById('register-form').classList.contains('hidden');
+  setAuthMode(registering?'register':'login');
+}
+
+async function handleAuthSubmit(event, mode) {
+  event.preventDefault();
+  const registering = mode==='register';
+  const errorEl = document.getElementById(registering?'register-error':'login-error');
+  errorEl.textContent = '';
+  const username = document.getElementById(registering?'register-username':'login-username').value.trim();
+  const password = document.getElementById(registering?'register-password':'login-password').value;
+  try {
+    const users = getStoredUsers();
+    let user;
+    if(registering) {
+      if(users.some(item=>item.username.toLowerCase()===username.toLowerCase())) {
+        errorEl.textContent = 'Tên người chơi này đã được đăng ký trên thiết bị.';
+        return;
+      }
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const saltHex = Array.from(salt, byte=>byte.toString(16).padStart(2,'0')).join('');
+      user = {
+        username, salt: saltHex, passwordHash: await passwordHash(password, salt),
+        elo: 1000, coins: 500, wins: 0, losses: 0, matches: []
+      };
+      users.push(user);
+      saveUsers(users);
+    } else {
+      user = users.find(item=>item.username.toLowerCase()===username.toLowerCase());
+      if(!user || await passwordHash(password, Uint8Array.from(user.salt.match(/.{2}/g), byte=>parseInt(byte,16))) !== user.passwordHash) {
+        errorEl.textContent = 'Tên người chơi hoặc mật khẩu chưa đúng.';
+        return;
+      }
+    }
+    localStorage.setItem(SESSION_STORAGE_KEY, user.username);
+    activateUser(user);
+  } catch(error) {
+    errorEl.textContent = error.message || 'Không thể lưu tài khoản demo trong trình duyệt này.';
+  }
+}
+
+function activateUser(user) {
+  currentUser = {
+    ...user,
+    elo: Number(user.elo)||1000,
+    coins: Number(user.coins)||0,
+    wins: Number(user.wins)||0,
+    losses: Number(user.losses)||0,
+    matches: Array.isArray(user.matches)?user.matches:[]
+  };
+  coins = currentUser.coins;
+  document.getElementById('login-password').value = '';
+  document.getElementById('register-password').value = '';
+  document.getElementById('auth-screen').classList.add('hidden');
+  updateAccountDisplay();
+  renderProfile();
+  renderLeaderboard();
+  showToast(`Chào mừng, ${currentUser.username}!`, 'success');
+}
+
+function initAuthentication() {
+  try {
+    const username = localStorage.getItem(SESSION_STORAGE_KEY);
+    if(!username) return;
+    const user = getStoredUsers().find(item=>item.username===username);
+    if(user) activateUser(user);
+    else localStorage.removeItem(SESSION_STORAGE_KEY);
+  } catch(error) {
+    document.getElementById('login-error').textContent = error.message;
+  }
+}
+
+function logout() {
+  clearInterval(timerInterval);
+  localStorage.removeItem(SESSION_STORAGE_KEY);
+  currentUser = null;
+  document.getElementById('auth-screen').classList.remove('hidden');
+  setAuthMode('login');
+  switchTab('home');
+}
+
+function saveCurrentUser() {
+  const users = getStoredUsers();
+  const index = users.findIndex(user=>user.username===currentUser.username);
+  if(index<0) throw new Error('Không tìm thấy tài khoản demo hiện tại.');
+  users[index] = currentUser;
+  saveUsers(users);
+}
+
+function updateAccountDisplay() {
+  if(!currentUser) return;
+  const played = currentUser.wins + currentUser.losses;
+  const initials = currentUser.username.slice(0,2).toUpperCase();
+  document.getElementById('nav-avatar').textContent = initials;
+  document.querySelector('.p1-avatar').textContent = initials;
+  document.getElementById('profile-username').textContent = currentUser.username;
+  document.getElementById('profile-elo').textContent = currentUser.elo;
+  document.getElementById('profile-games').textContent = played;
+  document.getElementById('profile-wins').textContent = currentUser.wins;
+  document.getElementById('profile-losses').textContent = currentUser.losses;
+  document.getElementById('profile-coins').textContent = coins.toLocaleString();
+  document.getElementById('profile-win-rate').textContent = played ? `${Math.round(currentUser.wins/played*100)}%` : '0%';
+  document.getElementById('profile-title').textContent = currentUser.elo >= 1600 ? '⚔️ Kỳ thủ Bạc' : '🌱 Kỳ thủ mới';
+  updateCoinDisplay();
+}
+
+function renderLeaderboard() {
+  const demoPlayers = [
+    { username:'Magnus_Bot', elo:1840 },
+    { username:'ChessKing99', elo:1715 },
+    { username:'GrandMaster_X', elo:1650 },
+    { username:'DeepBlue2024', elo:1520 },
+    { username:'Rookie123', elo:1280 }
+  ];
+  let users = [];
+  try { users = getStoredUsers(); }
+  catch(error) { showToast(error.message, 'warning'); }
+  const players = [...demoPlayers];
+  users.forEach(user=>{
+    const existing = players.findIndex(player=>player.username.toLowerCase()===user.username.toLowerCase());
+    const entry = { username:user.username, elo:Number(user.elo)||1000, isCurrent:user.username===currentUser?.username };
+    if(existing>=0) players[existing] = entry;
+    else players.push(entry);
+  });
+  players.sort((a,b)=>b.elo-a.elo);
+  const list = document.getElementById('leaderboard-list');
+  list.replaceChildren();
+  players.slice(0,10).forEach((player,index)=>{
+    const row = document.createElement('div');
+    row.className = `leader-row${player.isCurrent?' me':''}`;
+    const rank = document.createElement('div');
+    rank.className = 'leader-rank';
+    rank.textContent = ['🥇','🥈','🥉'][index] || `#${index+1}`;
+    const name = document.createElement('div');
+    name.className = 'leader-name';
+    name.textContent = player.username + (player.isCurrent?' (Bạn)':'');
+    const elo = document.createElement('div');
+    elo.className = 'leader-elo';
+    elo.textContent = `${player.elo} ELO`;
+    row.append(rank,name,elo);
+    list.appendChild(row);
+  });
+  if(currentUser) {
+    const rank = players.findIndex(player=>player.username===currentUser.username)+1;
+    document.getElementById('profile-rank').textContent = rank ? `🏅 Hạng #${rank} (demo)` : '🏅 Hạng mới';
+  }
+}
+
+function startMatch(mode) {
+  gameMode = mode;
+  clearTimeout(botTimeout);
+  botTimeout = null;
+  document.getElementById('waiting-message').textContent = mode==='bot'
+    ? 'Đang tìm bot đối thủ...'
+    : 'Đang chuẩn bị bàn cờ cho 2 người chơi cùng máy...';
+  document.getElementById('screen-waiting').classList.add('active');
+  document.querySelectorAll('.screen').forEach(screen=>{
+    if(screen.id!=='screen-waiting') screen.classList.remove('active');
+  });
+  document.querySelectorAll('.nav-tab').forEach(tab=>tab.classList.remove('active'));
+  clearInterval(timerInterval);
+  clearTimeout(matchmakingTimeout);
+  matchmakingTimeout = setTimeout(()=>{
+    matchmakingTimeout = null;
+    const local = gameMode==='local';
+    document.getElementById('game-mode-label').textContent = local ? 'Đấu 2 người • Cùng máy' : 'Đấu với Bot • Demo';
+    document.getElementById('white-player-name').textContent = currentUser.username;
+    document.getElementById('white-player-elo').textContent = `ELO ${currentUser.elo} • Quân Trắng`;
+    document.getElementById('black-player-name').textContent = local ? 'Người chơi 2' : 'Magnus_Bot';
+    document.getElementById('black-player-elo').textContent = local ? 'Quân Đen • Cùng máy' : 'ELO 1840 • Quân Đen';
+    document.getElementById('black-player-avatar').textContent = local ? 'P2' : '🤖';
+    document.getElementById('cards-panel').classList.toggle('hidden', local);
+    resetGame();
+    switchTab('game');
+  }, 900);
+}
+
+function cancelMatchmaking() {
+  clearTimeout(matchmakingTimeout);
+  switchTab('lobby');
+}
+
+// ═══════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════
+function switchTab(tab) {
+  const screen = document.getElementById('screen-'+tab);
+  if(!screen) return;
+  if(tab!=='waiting' && matchmakingTimeout) {
+    clearTimeout(matchmakingTimeout);
+    matchmakingTimeout = null;
+  }
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  screen.classList.add('active');
+  const navTab = document.getElementById('tab-'+tab);
+  if(navTab) navTab.classList.add('active');
+  if(tab==='game') {
+    startTimer();
+    if(gameMode==='bot' && currentTurn==='b' && !gameOver) scheduleBotMove();
+  } else {
+    clearInterval(timerInterval);
+    clearTimeout(botTimeout);
+    botTimeout = null;
+  }
+  if(tab==='leaderboard') renderLeaderboard();
+}
+
+function updateStatus() {
+  if(gameOver) return;
+  const el = document.getElementById('game-status');
+  if(gameMode==='local') el.textContent = currentTurn==='w' ? '♟️ Lượt quân Trắng' : '♟️ Lượt quân Đen';
+  else el.textContent = currentTurn==='w' ? '♟️ Lượt của bạn – Chọn quân cờ' : '⏳ Đợi Bot đi...';
+}
+
+function updateCoinDisplay() {
+  document.getElementById('coin-display').textContent = coins.toLocaleString();
+  const profileCoins = document.getElementById('profile-coins');
+  if(profileCoins) profileCoins.textContent = coins.toLocaleString();
+}
+
+function showToast(msg, type='info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`; t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(100px)'; t.style.transition='all 0.3s'; setTimeout(()=>t.remove(),300); }, 3000);
+}
+
+function showModal(icon, title, desc) {
+  document.getElementById('modal-icon').textContent  = icon;
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-desc').textContent  = desc;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+function resetGame() {
+  clearTimeout(botTimeout);
+  botTimeout = null;
+  board = [
+    ['bR','bN','bB','bQ','bK','bB','bN','bR'],
+    ['bP','bP','bP','bP','bP','bP','bP','bP'],
+    [null,null,null,null,null,null,null,null],
+    [null,null,null,null,null,null,null,null],
+    [null,null,null,null,null,null,null,null],
+    [null,null,null,null,null,null,null,null],
+    ['wP','wP','wP','wP','wP','wP','wP','wP'],
+    ['wR','wN','wB','wQ','wK','wB','wN','wR']
+  ];
+  selectedSq=null; validMoves=[]; selectedCard=null; currentTurn='w'; moveHistory=[]; gameOver=false;
+  lastMove=null; capturedByWhite=[]; capturedByBlack=[];
+  timers={w:595,b:527}; activeTimer='w'; cardUsed={};
+  renderBoard(); renderMoves(); renderCaptured(); renderCards(); updateStatus(); updateTimerDisplay();
+  startTimer(); showToast('🎮 Ván mới bắt đầu!','success');
+}
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+renderBoard(); renderLabels(); renderCards(); renderMoves(); renderCaptured();
+renderShop(); renderProfile(); renderLeaderboard(); updateTimerDisplay();
+initAuthentication();
+</script>
+</body>
+</html>
