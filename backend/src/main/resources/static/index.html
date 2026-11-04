@@ -306,15 +306,13 @@
     .subtitle { margin: 0; color: var(--muted); line-height: 1.6; }
     .game-layout { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 28px; align-items: start; margin-top: 32px; }
     .board-wrap { width: min(100%, 650px); margin: 0 auto; padding: 12px; border: 1px solid var(--border); border-radius: 16px; background: var(--panel); }
-    .board { display: grid; grid-template-columns: repeat(8, 1fr); overflow: hidden; border-radius: 8px; aspect-ratio: 1; }
+    .board { display: grid; grid-template-columns: repeat(8, 1fr); overflow: hidden; border-radius: 8px; aspect-ratio: 1; background: url("/pixel-chess-v1/boards/board_plain_01.png") center / 100% 100% no-repeat; image-rendering: pixelated; }
     .square { display: grid; position: relative; min-width: 0; place-items: center; border: 0; padding: 0; color: inherit; }
-    .square.light { background: #d9dfc5; }
-    .square.dark { background: #779477; }
+    .square.light, .square.dark { background: transparent; }
     .square.selected { box-shadow: inset 0 0 0 5px #f4d35e; }
     .square.last-move { background-image: linear-gradient(#f4d35e55, #f4d35e55); }
-    .piece { font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "DejaVu Sans", serif; font-size: clamp(24px, 7vw, 66px); line-height: 1; user-select: none; }
-    .white-piece { color: #fffdf5; text-shadow: 0 2px 2px #26332c, 1px 0 #26332c, -1px 0 #26332c, 0 -1px #26332c; }
-    .black-piece { color: #202b25; text-shadow: 0 1px 1px #ffffff66; }
+    .piece { display: grid; width: 100%; height: 100%; place-items: center; user-select: none; }
+    .piece-sprite { width: 82%; height: 97%; object-fit: contain; image-rendering: pixelated; pointer-events: none; }
     .square:focus-visible { z-index: 1; outline: 3px solid #fff; outline-offset: -4px; }
     .game-panel { display: grid; gap: 14px; }
     .game-panel .card h2 { margin: 0; font-size: 20px; }
@@ -800,6 +798,14 @@
       wK: "♔", wQ: "♕", wR: "♖", wB: "♗", wN: "♘", wP: "♙",
       bK: "♚", bQ: "♛", bR: "♜", bB: "♝", bN: "♞", bP: "♟"
     };
+    const pieceSprites = {
+      wK: "/pixel-chess-v1/pieces/W_King.png", wQ: "/pixel-chess-v1/pieces/W_Queen.png",
+      wR: "/pixel-chess-v1/pieces/W_Rook.png", wB: "/pixel-chess-v1/pieces/W_Bishop.png",
+      wN: "/pixel-chess-v1/pieces/W_Knight.png", wP: "/pixel-chess-v1/pieces/W_Pawn.png",
+      bK: "/pixel-chess-v1/pieces/B_King.png", bQ: "/pixel-chess-v1/pieces/B_Queen.png",
+      bR: "/pixel-chess-v1/pieces/B_Rook.png", bB: "/pixel-chess-v1/pieces/B_Bishop.png",
+      bN: "/pixel-chess-v1/pieces/B_Knight.png", bP: "/pixel-chess-v1/pieces/B_Pawn.png"
+    };
     const state = {
       token: localStorage.getItem("chess2-token") || sessionStorage.getItem("chess2-token"),
       player: null,
@@ -1074,8 +1080,13 @@
           if (state.lastMove?.includes(coordinate)) square.classList.add("last-move");
           if (piece) {
             const glyph = document.createElement("span");
-            glyph.className = `piece ${piece[0] === "w" ? "white-piece" : "black-piece"}`;
-            glyph.textContent = pieceSymbols[piece] || "";
+            glyph.className = "piece";
+            const sprite = document.createElement("img");
+            sprite.className = "piece-sprite";
+            sprite.src = pieceSprites[piece];
+            sprite.alt = "";
+            sprite.draggable = false;
+            glyph.append(sprite);
             ariaLabel(square, piece);
             square.append(glyph);
           }

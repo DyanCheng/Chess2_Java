@@ -1,5 +1,12 @@
 # Chess2 Java
 
+## Pixel chess assets
+
+Giao diện dùng các sprite trong `backend/src/main/resources/static/pixel-chess-v1/`.
+Asset gốc **Pixel chess v1.2** bởi **Dani Maccari** (https://dani-maccari.itch.io/),
+được sử dụng theo tệp `LICENSE-AND-ATTRIBUTION.txt` đi kèm. Không tách riêng,
+đóng gói lại hoặc phân phối lại bộ asset này.
+
 Backend Java cho Arcane Chess mobile. Dự án thay thế demo dữ liệu trong bộ nhớ bằng Spring Boot, JWT, Spring Security, JPA/Hibernate và Supabase Postgres.
 
 ## Phạm vi hiện tại
