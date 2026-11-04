@@ -1,3 +1,6 @@
+create schema if not exists chess;
+set search_path to chess, public;
+
 create table users (
     id uuid primary key,
     username varchar(32) not null unique,
