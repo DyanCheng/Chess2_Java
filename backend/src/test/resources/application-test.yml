@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:chess2;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        default_schema: PUBLIC
+  flyway:
+    enabled: false
+
+app:
+  cors:
+    allowed-origins: http://localhost:8081
+  security:
+    jwt-secret: VGhpcy1pcy1hLXRlc3Qtc2VjcmV0LWZvci1DaGVzczItSmF2YS1KV1Q=
+    jwt-expiration-minutes: 60
