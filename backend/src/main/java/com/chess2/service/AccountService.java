@@ -13,6 +13,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +27,7 @@ public class AccountService {
     private final Map<String, Player> players = new ConcurrentHashMap<>();
     private final Map<String, String> sessions = new ConcurrentHashMap<>();
 
+    @CacheEvict(cacheNames = "leaderboard", allEntries = true)
     public AuthResponse register(String username, String password) {
         String normalized = username.trim();
         String key = normalized.toLowerCase();
@@ -59,6 +62,7 @@ public class AccountService {
         return view(requirePlayer(authorization));
     }
 
+    @Cacheable("leaderboard")
     public List<PlayerView> leaderboard() {
         return players.values().stream()
                 .sorted(Comparator.comparingInt((Player player) -> player.elo).reversed()
@@ -67,6 +71,7 @@ public class AccountService {
                 .toList();
     }
 
+    @CacheEvict(cacheNames = "leaderboard", allEntries = true)
     public void recordResult(Player player, boolean won) {
         synchronized (player) {
             player.games++;
@@ -112,7 +117,8 @@ public class AccountService {
 
     public record AuthResponse(String token, PlayerView player) {}
 
-    public record PlayerView(String username, int elo, int games, int wins, int losses) {}
+    public record PlayerView(String username, int elo, int games, int wins, int losses)
+            implements java.io.Serializable {}
 
     public static final class Player {
         private final String username;

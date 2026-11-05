@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#faf8ff">
+  <meta name="theme-color" content="#101419">
   <title>Arcane Chess — Đăng nhập</title>
   <style>
     :root {
@@ -188,8 +188,112 @@
     .home-leaderboard .podium-elo { font-size: 12px; }
     .home-leaderboard .section-label .quiet { padding: 3px 0; color: var(--blue); font-size: 9px; }
     .home-recent-card { margin-top: 9px; padding: 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); }
-    .home-recent-title { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; font-size: 13px; font-weight: 800; }
-    .home-recent-card p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .home-recent-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 7px; }
+    .home-recent-title { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 800; }
+    .home-recent-heading > span { color: var(--blue); font-size: 8px; font-weight: 750; }
+    .home-history-row { display: grid; grid-template-columns: 31px minmax(0, 1fr) 28px; gap: 8px; align-items: center; padding: 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-soft); }
+    .home-history-result-icon { display: grid; width: 29px; height: 29px; place-items: center; border: 1px solid #6bba98; border-radius: 9px; background: #e6f8ef; color: #19744d; font-size: 14px; }
+    .home-history-result-icon[data-result="loss"] { border-color: #e9a1a1; background: #fff0f0; color: #bd3b46; }
+    .home-history-result-icon[data-result="draw"] { border-color: #d3b970; background: #fff7db; color: #866310; }
+    .home-history-copy { min-width: 0; }
+    .home-history-copy strong, .home-history-copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .home-history-copy strong { font-size: 10px; }
+    .home-history-copy small { margin-top: 3px; color: var(--muted); font-size: 9px; }
+    .home-history-play { width: 27px; height: 27px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--blue); font-size: 10px; }
+    .home-progress-card { display: grid; grid-template-columns: 31px minmax(0, 1fr) 26px; gap: 9px; align-items: center; margin-top: 9px; padding: 9px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); }
+    .home-progress-icon { display: grid; width: 29px; height: 29px; place-items: center; border: 1px solid #ffd586; border-radius: 9px; background: #fff5dc; color: #a64b00; font-size: 15px; }
+    body[data-theme="dark"] .home-progress-icon { border-color: #5b4328; background: #38281b; color: #ffca76; }
+    .home-progress-title { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 5px; font-size: 10px; }
+    .home-progress-title strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .home-progress-title > span { flex: 0 0 auto; color: var(--blue); font-size: 9px; font-weight: 750; }
+    .home-progress-card .progress-track { height: 4px; }
+    .home-progress-action { display: grid; width: 26px; height: 26px; place-items: center; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-soft); color: var(--accent); }
+    .home-ranked-card { margin: 9px 0; padding: 11px; border: 1px solid #665034; border-radius: 14px; background: linear-gradient(145deg, #24272b, #171b20); box-shadow: var(--shadow); }
+    .home-ranked-top { display: flex; align-items: center; gap: 8px; }
+    .home-ranked-icon { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 8px; background: #66502d; color: #ffd17f; font-size: 14px; }
+    .home-ranked-title { flex: 1; font-size: 13px; font-weight: 850; }
+    .home-ranked-tag { padding: 3px 6px; border-radius: 5px; background: #f5b64e; color: #482d08; font-size: 8px; font-weight: 850; }
+    .home-ranked-copy { margin: 3px 0 9px 36px; color: #c1b6a8; font-size: 9px; }
+    .home-ranked-card .primary { width: 100%; min-height: 38px; border-radius: 10px; font-size: 15px; font-weight: 850; }
+    .home-leader-current { display: grid; grid-template-columns: auto 27px minmax(0, 1fr) auto; gap: 8px; align-items: center; margin-top: 7px; padding: 9px; border: 1px solid var(--border); border-radius: 11px; background: var(--surface-soft); }
+    .home-leader-current[hidden] { display: none; }
+    .home-current-rank { color: var(--accent); font-size: 11px; font-weight: 850; }
+    .home-current-player { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .home-current-elo { color: var(--accent); font-size: 10px; font-weight: 850; white-space: nowrap; }
+    .home-hero { min-height: 173px; }
+    .home-hero::before { position: absolute; inset: 0; background: radial-gradient(circle at 11% 22%, #d7edffad 0 1px, transparent 2px), radial-gradient(circle at 21% 47%, #f5c979b0 0 1px, transparent 2px), radial-gradient(circle at 69% 18%, #d7edffad 0 1px, transparent 2px), radial-gradient(circle at 82% 66%, #f5c979ad 0 1px, transparent 2px), radial-gradient(circle at 50% 30%, #fff8 0 1px, transparent 2px), radial-gradient(ellipse at 82% 28%, #704716 0, transparent 36%), linear-gradient(120deg, #111b29, #172431 55%, #412719); content: ""; }
+    .home-hero::after { top: -25px; right: -9px; width: 156px; height: 156px; opacity: .57; }
+    .home-hero > * { z-index: 1; }
+    .home-play-list .quick-play { background: color-mix(in srgb, var(--surface) 92%, var(--blue)); }
+    .home-recent-card { padding: 11px; }
+    .home-recent-card p { padding: 7px 8px; border-radius: 8px; background: var(--surface-soft); }
+    .app-topbar .brand-mark { overflow: hidden; border: 1px solid #a87a35; background: linear-gradient(145deg, #293846, #7a481d); box-shadow: 0 0 12px #f4b24c30; color: #ffe0a2; }
+    .app-topbar .brand { color: var(--accent); text-transform: uppercase; }
+    .app-topbar .account-profile { border-radius: 18px; }
+    body[data-theme="dark"] { color-scheme: dark; }
+    body[data-theme="dark"] .profile-summary { border-color: #34383e; background: linear-gradient(120deg, #1a1f25, #24282d); }
+    body[data-theme="dark"] .home-ranked-card { border-color: #34383e; background: linear-gradient(145deg, #24282e, #191d22); }
+    body[data-theme="dark"] .home-ranked-copy { color: #b7b0a7; }
+    body[data-theme="dark"] .home-play-list .quick-play { background: var(--surface); }
+    .home-current-avatar { display: grid; width: 27px; height: 27px; place-items: center; border: 1px solid #d5a649; border-radius: 50%; background: #233344; color: #ffe2a0; font-size: 12px; font-weight: 800; }
+    .home-player-card { padding: 8px; border: 1px solid #45413b; border-radius: 16px; background: linear-gradient(145deg, #24282d, #1a1e23); box-shadow: var(--shadow); }
+    .home-player-card .profile-summary { padding: 3px 3px 8px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+    .home-player-card .stat-strip { margin-top: 0; }
+    .home-player-card .stat-tile { padding: 7px 3px; border-color: #30363c; background: #14191f; }
+    body[data-theme="light"] .home-player-card { border-color: #efd384; background: linear-gradient(145deg, #fff, #fffaf0); }
+    body[data-theme="light"] .home-player-card .stat-tile { border-color: var(--border); background: var(--surface-soft); }
+    .home-top-brand { display: grid; width: 31px; height: 38px; place-items: center; overflow: hidden; border: 1px solid #ad772e; border-radius: 10px 10px 13px 13px; background: #131820; box-shadow: 0 0 13px #f4b24c25; }
+    .home-top-brand img { width: 100%; height: 100%; object-fit: cover; }
+    .home-event { isolation: isolate; min-height: 171px; justify-content: flex-end; background: linear-gradient(90deg, #0b1118 2%, #111923d9 48%, #11192326 100%); }
+    .home-event::before { z-index: -1; background: radial-gradient(circle at 8% 18%, #d7edffad 0 1px, transparent 2px), radial-gradient(circle at 21% 47%, #f5c979b0 0 1px, transparent 2px), radial-gradient(circle at 69% 18%, #d7edffad 0 1px, transparent 2px), radial-gradient(circle at 82% 66%, #f5c979ad 0 1px, transparent 2px); }
+    .home-event::after { z-index: -1; inset: 0; width: auto; height: auto; border: 0; border-radius: inherit; background: linear-gradient(90deg, #0b1118 0%, #111923d9 48%, #11192332 100%); mask-image: none; opacity: 1; }
+    .home-event-art { position: absolute; z-index: -2; top: 0; right: 0; width: 70%; height: 100%; object-fit: cover; object-position: 50% 43%; opacity: .8; }
+    .home-event .hero-kicker { position: relative; }
+    .home-event h2 { max-width: 260px; font-size: 18px; }
+    .home-event p { max-width: 238px; }
+    .home-event-button { position: absolute !important; right: 11px; bottom: 11px; margin: 0 !important; }
+    .home-progress-card { min-height: 48px; }
+    .home-progress-title strong { font-weight: 750; }
+    .home-ranked-card { background: linear-gradient(145deg, #272a2e, #191d22); }
+    .home-ranked-top { min-height: 23px; }
+    .home-ranked-card .primary { background: linear-gradient(100deg, #ffc66e, #f29509); box-shadow: 0 3px 13px #f29a1645; color: #30200b; }
+    .home-ranked-copy strong { color: #ffc66e; }
+    body[data-theme="dark"] .mission-card { border-color: #30353b; background: #1b2026; }
+    body[data-theme="dark"] .mission-action { border-color: #333a41; background: #252b32; color: #eee8df; }
+    body[data-theme="dark"] .home-recent-card { border-color: #30353b; background: #1a1f25; }
+    body[data-theme="dark"] .home-history-row { border-color: #343a40; background: #11161c; }
+    body[data-theme="dark"] .home-history-result-icon { border-color: #285d48; background: #182b25; color: #68d3a2; }
+    body[data-theme="dark"] .home-history-result-icon[data-result="loss"] { border-color: #694044; background: #302024; color: #ff9a91; }
+    body[data-theme="dark"] .home-history-result-icon[data-result="draw"] { border-color: #675632; background: #2e291b; color: #ffdc7e; }
+    body[data-theme="dark"] .app-nav { border-color: #272d34; background: #101419f2; }
+    body[data-theme="dark"] .nav-item { color: #c3b9ad; }
+    body[data-theme="dark"] .nav-item.active { color: #ffbf64; }
+    @media (max-width: 480px) {
+      .home-heading { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+      .profile-summary { margin-top: 0; }
+      .home-section { margin-top: 16px; }
+      .mission-list { gap: 7px; }
+      .mission-card { gap: 5px 7px; padding: 7px; border-radius: 10px; }
+      .mission-copy strong { font-size: 10px; }
+      .mission-copy small { font-size: 8px; }
+      .mission-progress { gap: 6px; }
+      .mission-progress small { font-size: 8px; }
+      .home-event { min-height: 151px; margin: 11px 0; }
+      .home-event::after { background: linear-gradient(90deg, #0b1118 0%, #111923d9 48%, #11192332 100%); }
+      .home-event-art { width: 74%; }
+      .home-event h2 { max-width: 215px; font-size: 16px; }
+      .home-event p { max-width: 205px; font-size: 9px; }
+      .home-event-button { right: 8px; bottom: 8px; padding: 7px 9px !important; font-size: 10px !important; }
+      .home-progress-card { grid-template-columns: 27px minmax(0, 1fr) 25px; gap: 7px; margin-top: 8px; padding: 7px; }
+      .home-ranked-card { padding: 9px; }
+      .home-ranked-title { font-size: 12px; }
+      .home-ranked-copy { margin-bottom: 7px; }
+      .home-ranked-card .primary { min-height: 35px; font-size: 13px; }
+      .home-ranked-card { padding: 10px; }
+      .home-leaderboard .podium { min-height: 110px; }
+      .app-nav { border-radius: 12px 12px 0 0; }
+      body[data-theme="dark"] .app-nav { background: #11161ced; }
+    }
     .section-label { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 22px 0 11px; font-size: 16px; font-weight: 800; }
     .section-label span:last-child { color: var(--blue); font-size: 11px; font-weight: 700; }
     .quick-play-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -426,7 +530,7 @@
         </div>
       </div>
       <div id="app-topbar" class="app-topbar" hidden>
-        <div class="brand"><span class="brand-mark" aria-hidden="true">♞</span> Arcane Chess</div>
+        <div class="brand"><span class="home-top-brand" aria-hidden="true"><img src="arcane-crest.png" alt=""></span> Arcane Chess</div>
       </div>
       <div id="account" class="account" hidden>
         <button id="account-name" class="account-profile" type="button" aria-label="Mở hồ sơ"></button>
@@ -537,19 +641,21 @@
               </div>
               <span class="mini-chip"><span aria-hidden="true">♞</span> <span id="home-rank">Tân thủ</span></span>
             </div>
-            <div class="profile-summary">
-              <div id="home-avatar" class="avatar-orb" aria-hidden="true">♞</div>
-              <div>
-                <div id="home-username" class="summary-name">Người chơi</div>
-                <div class="summary-meta"><span id="home-rank-tag" class="rank-tag">Tân thủ Arcane</span><span><span id="home-games">0</span> trận</span></div>
+            <div class="home-player-card">
+              <div class="profile-summary">
+                <div id="home-avatar" class="avatar-orb" aria-hidden="true">♞</div>
+                <div>
+                  <div id="home-username" class="summary-name">Người chơi</div>
+                  <div class="summary-meta"><span id="home-rank-tag" class="rank-tag">Tân thủ Arcane</span><span><span id="home-games">0</span> trận</span></div>
+                </div>
+                <div class="summary-elo"><span id="home-elo">1000</span><small>ARCANE ELO</small></div>
               </div>
-              <div class="summary-elo"><span id="home-elo">1000</span><small>ARCANE ELO</small></div>
-            </div>
-            <div class="stat-strip" aria-label="Thống kê người chơi">
-              <div class="stat-tile"><span>Tỉ lệ thắng</span><strong id="home-win-rate">0%</strong></div>
-              <div class="stat-tile"><span>Tổng trận</span><strong id="home-total-games">0</strong></div>
-              <div class="stat-tile"><span>Trận thắng</span><strong id="home-wins">0</strong></div>
-              <div class="stat-tile"><span>Trận thua</span><strong id="home-losses">0</strong></div>
+              <div class="stat-strip" aria-label="Thống kê người chơi">
+                <div class="stat-tile"><span>Tỉ lệ thắng</span><strong id="home-win-rate">0%</strong></div>
+                <div class="stat-tile"><span>Tổng trận</span><strong id="home-total-games">0</strong></div>
+                <div class="stat-tile"><span>Trận thắng</span><strong id="home-wins">0</strong></div>
+                <div class="stat-tile"><span>Trận thua</span><strong id="home-losses">0</strong></div>
+              </div>
             </div>
 
             <section class="home-section" aria-labelledby="daily-missions-heading">
@@ -579,26 +685,45 @@
               </div>
             </section>
 
-            <div class="home-hero">
-              <div class="hero-kicker">♛ · CHIẾN THUẬT BẮT ĐẦU TỪ ĐÂY</div>
-              <h2>Mỗi nước đi tạo nên huyền thoại.</h2>
-              <p>Thử sức với Bot hoặc chơi luân phiên cùng bạn bè trên cùng thiết bị.</p>
-              <button id="hero-play" class="primary" type="button">⚔ Tạo ván mới</button>
+            <div class="home-hero home-event">
+              <img class="home-event-art" src="arcane-crest.png" alt="">
+              <div class="hero-kicker">SỰ KIỆN ARCANE · MÙA GIẢI MỚI</div>
+              <h2>Thử thách chiến thuật của bạn</h2>
+              <p>Đấu với Bot hoặc rủ bạn bè chơi cùng trên một thiết bị.</p>
+              <button id="featured-play" class="primary home-event-button" type="button">♟ Chơi ngay</button>
+            </div>
+
+            <div class="home-progress-card" aria-label="Tiến độ xếp hạng">
+              <span class="home-progress-icon" aria-hidden="true">♜</span>
+              <div>
+                <div class="home-progress-title"><strong>Arcane Pass · <span id="home-next-rank">Chiến binh</span></strong><span id="home-rank-progress-label">1000 / 1200 ELO</span></div>
+                <div class="progress-track"><span id="home-rank-progress"></span></div>
+              </div>
+              <button class="home-progress-action" type="button" aria-label="Xem hồ sơ" id="home-progress-profile">♙</button>
             </div>
 
             <section class="home-section" aria-labelledby="battle-modes-heading">
-              <div class="section-label"><span id="battle-modes-heading">♧ Chế Độ Chiến Đấu</span><span>CHỌN ĐỐI THỦ</span></div>
+              <div class="section-label"><span id="battle-modes-heading">♧ Chế Độ Chiến Đấu</span><span>BOT · LOCAL</span></div>
+              <article class="home-ranked-card">
+                <div class="home-ranked-top">
+                  <span class="home-ranked-icon" aria-hidden="true">♟</span>
+                  <strong class="home-ranked-title">ĐẤU XẾP HẠNG</strong>
+                  <span class="home-ranked-tag">ELO</span>
+                </div>
+                <p class="home-ranked-copy">Bạn đang có <strong id="battle-home-elo">1000 ELO</strong> · đấu với Bot để thay đổi thứ hạng.</p>
+                <button id="hero-play" class="primary" type="button">▶ TÌM TRẬN NGAY</button>
+              </article>
               <div class="home-play-list">
                 <button id="home-bot" class="quick-play" type="button">
                   <span class="quick-icon" aria-hidden="true">♟</span>
-                  <strong>Chơi với máy</strong>
+                  <strong>CHƠI VỚI MÁY</strong>
                   <small>Luyện cờ · Đối thủ Bot</small>
                   <span class="play-action">Chọn Bot ›</span>
                 </button>
                 <button id="home-local" class="quick-play" type="button">
                   <span class="quick-icon" aria-hidden="true">⚔</span>
-                  <strong>Hai người chơi</strong>
-                  <small>Đấu luân phiên cùng thiết bị</small>
+                  <strong>TẠO VÁN BẠN BÈ</strong>
+                  <small>Hai người chơi trên cùng thiết bị</small>
                   <span class="play-action">Tạo ván ›</span>
                 </button>
               </div>
@@ -612,10 +737,26 @@
               <div id="home-leaders" class="podium" aria-live="polite">
                 <div class="status">Đang tải bảng xếp hạng...</div>
               </div>
+              <div id="home-current-rank" class="home-leader-current" hidden>
+                <strong id="home-current-rank-number" class="home-current-rank">#–</strong>
+                <span class="home-current-avatar" id="home-current-avatar" aria-hidden="true">♙</span>
+                <span id="home-current-player" class="home-current-player">Kỳ thủ của bạn</span>
+                <strong id="home-current-elo" class="home-current-elo">1000 ELO</strong>
+              </div>
             </section>
             <section id="home-recent" class="home-recent-card" aria-labelledby="home-history-heading">
-              <div id="home-history-heading" class="home-recent-title"><span aria-hidden="true">◷</span> Lịch Sử Trận Đấu</div>
-              <p id="home-recent-text">Bạn chưa chơi ván nào. Tạo ván mới để bắt đầu.</p>
+              <div class="home-recent-heading">
+                <div id="home-history-heading" class="home-recent-title"><span aria-hidden="true">◷</span> Lịch Sử Trận Đấu</div>
+                <span id="home-history-count">CHƯA CÓ TRẬN</span>
+              </div>
+              <div class="home-history-row">
+                <span id="home-history-result-icon" class="home-history-result-icon" aria-hidden="true">♟</span>
+                <div class="home-history-copy">
+                  <strong id="home-history-result">Chưa có ván đấu gần đây</strong>
+                  <small id="home-history-details">Bắt đầu một ván để xem kết quả tại đây.</small>
+                </div>
+                <button id="home-history-play" class="home-history-play" type="button" aria-label="Chơi một ván mới">▶</button>
+              </div>
             </section>
           </section>
 
@@ -886,6 +1027,8 @@
       $("home-wins").textContent = wins;
       $("home-losses").textContent = losses;
       updateHomeMissions(games, wins);
+      updateHomeRankProgress(elo);
+      updateHomeHistory(games);
       $("battle-elo").textContent = `${elo} ELO`;
       $("battle-player-name").textContent = player.username;
       $("battle-record").textContent = `${wins} thắng / ${losses} thua`;
@@ -901,7 +1044,27 @@
       $("profile-losses").textContent = losses;
       $("profile-win-rate").textContent = winRate;
       $("profile-title").textContent = wins >= 10 ? "♛ Kỳ thủ" : "♙ Tân thủ";
-      if (state.lastResult) $("home-recent-text").textContent = state.lastResult;
+    }
+
+    function updateHomeHistory(games) {
+      const result = $("home-history-result");
+      const details = $("home-history-details");
+      const icon = $("home-history-result-icon");
+      if (!state.lastResult) {
+        $("home-history-count").textContent = games ? `${games} TRẬN ĐÃ CHƠI` : "CHƯA CÓ TRẬN";
+        result.textContent = "Chưa có ván đấu gần đây";
+        details.textContent = games
+          ? "Lịch sử chi tiết chưa được lưu trong bản demo."
+          : "Bắt đầu một ván để xem kết quả tại đây.";
+        icon.dataset.result = "";
+        return;
+      }
+      $("home-history-count").textContent = "VÁN GẦN NHẤT";
+      result.textContent = state.lastResult;
+      details.textContent = `${state.match?.mode === "LOCAL" ? "Hai người chơi" : "Đấu với Bot"} · Kết quả trong phiên hiện tại`;
+      icon.dataset.result = state.match?.status === "DRAW"
+        ? "draw"
+        : state.match?.winner === "w" ? "win" : "loss";
     }
 
     function updateHomeMissions(games, wins) {
@@ -916,6 +1079,19 @@
         progress.textContent = `${mission.progress}/${mission.goal}`;
         bar.style.setProperty("--progress", `${mission.progress / mission.goal * 100}%`);
       }
+    }
+
+    function updateHomeRankProgress(elo) {
+      const ranks = [
+        { min: 0, max: 1200, title: "Chiến binh" },
+        { min: 1200, max: 1500, title: "Kiện tướng Arcane" },
+        { min: 1500, max: 1800, title: "Đại kiện tướng" }
+      ];
+      const next = ranks.find((rank) => elo < rank.max);
+      const progress = next ? Math.max(0, Math.min(100, (elo - next.min) / (next.max - next.min) * 100)) : 100;
+      $("home-next-rank").textContent = next ? `Tiến tới ${next.title}` : "Đã đạt hạng cao nhất";
+      $("home-rank-progress-label").textContent = next ? `${elo} / ${next.max} ELO` : `${elo} ELO`;
+      $("home-rank-progress").style.setProperty("--progress", `${progress}%`);
     }
 
     function navigateScreen(name) {
@@ -1205,9 +1381,11 @@
       try {
         const players = await request("/api/leaderboard");
         renderPodium($("home-leaders"), players);
+        renderHomeCurrentRank(players);
         renderPodium($("leaderboard-podium"), players);
         renderLeaderboardRows($("leaderboard-list"), players);
       } catch (error) {
+        $("home-current-rank").hidden = true;
         for (const container of containers) {
           container.replaceChildren();
           const message = document.createElement("p");
@@ -1216,6 +1394,19 @@
           container.append(message);
         }
       }
+    }
+
+    function renderHomeCurrentRank(players) {
+      if (!state.player) {
+        $("home-current-rank").hidden = true;
+        return;
+      }
+      const rank = players.findIndex((player) => player.username === state.player.username);
+      $("home-current-rank-number").textContent = rank < 0 ? "#–" : `#${rank + 1}`;
+      $("home-current-avatar").textContent = state.player.username.slice(0, 1).toUpperCase();
+      $("home-current-player").textContent = `${state.player.username} (Bạn)`;
+      $("home-current-elo").textContent = `${state.player.elo} ELO`;
+      $("home-current-rank").hidden = false;
     }
 
     function renderPodium(container, players) {
@@ -1316,8 +1507,11 @@
     });
     $("battle-bot").addEventListener("click", () => createMatch("BOT"));
     $("battle-local").addEventListener("click", () => createMatch("LOCAL"));
+    $("featured-play").addEventListener("click", () => createMatch("BOT"));
     $("hero-play").addEventListener("click", () => createMatch("BOT"));
     $("home-all-leaders").addEventListener("click", () => navigateScreen("leaderboard"));
+    $("home-progress-profile").addEventListener("click", () => navigateScreen("profile"));
+    $("home-history-play").addEventListener("click", () => createMatch("BOT"));
     $("game-back").addEventListener("click", () => navigateScreen("battle"));
     $("profile-play").addEventListener("click", () => createMatch("BOT"));
     $("profile-sign-out").addEventListener("click", () => showAuth());
@@ -1330,7 +1524,7 @@
     $("resign").addEventListener("click", resign);
     $("sign-out").addEventListener("click", () => showAuth());
 
-    setTheme(localStorage.getItem("chess2-theme") === "dark" ? "dark" : "light");
+    setTheme(localStorage.getItem("chess2-theme") === "light" ? "light" : "dark");
     if (state.token) {
       refreshPlayer().catch(() => showAuth("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."));
     } else {

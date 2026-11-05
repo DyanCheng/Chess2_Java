@@ -1,0 +1,52 @@
+name: Build and deploy backend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21 and Maven cache
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Run tests
+        working-directory: backend
+        run: bash ./mvnw -B -ntp clean test
+
+      - name: Package application
+        working-directory: backend
+        run: bash ./mvnw -B -ntp package -DskipTests
+
+      - name: Build Docker image
+        run: docker build --tag chess2-backend:${{ github.sha }} ./backend
+
+      - name: Deploy to Railway
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: backend
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE_ID: ${{ vars.RAILWAY_SERVICE_ID }}
+          RAILWAY_ENVIRONMENT_ID: ${{ vars.RAILWAY_ENVIRONMENT_ID }}
+          BACKEND_HEALTH_URL: ${{ vars.BACKEND_HEALTH_URL }}
+        run: |
+          test -n "$RAILWAY_TOKEN" || { echo "Configure the RAILWAY_TOKEN Actions secret."; exit 1; }
+          test -n "$RAILWAY_SERVICE_ID" || { echo "Configure the RAILWAY_SERVICE_ID Actions variable."; exit 1; }
+          test -n "$RAILWAY_ENVIRONMENT_ID" || { echo "Configure the RAILWAY_ENVIRONMENT_ID Actions variable."; exit 1; }
+          test -n "$BACKEND_HEALTH_URL" || { echo "Configure the BACKEND_HEALTH_URL Actions variable."; exit 1; }
+          npx --yes @railway/cli up --service "$RAILWAY_SERVICE_ID" --environment "$RAILWAY_ENVIRONMENT_ID" --ci
+          curl --fail --silent --show-error --retry 20 --retry-delay 15 --retry-all-errors "$BACKEND_HEALTH_URL"
