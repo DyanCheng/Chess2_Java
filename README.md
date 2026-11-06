@@ -32,6 +32,8 @@ Backend Java cho Arcane Chess mobile. Dự án thay thế demo dữ liệu trong
 
 ### Demo tức thì, không cần Supabase
 
+Yêu cầu JDK 21 (cùng phiên bản với CI/CD và Docker image).
+
 ```powershell
 cd backend
 mvn -Dspring-boot.run.profiles=demo spring-boot:run
