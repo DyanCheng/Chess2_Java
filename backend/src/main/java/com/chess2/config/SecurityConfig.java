@@ -34,8 +34,8 @@ public class SecurityConfig {
         return http.csrf(csrf -> csrf.disable()).cors(cors -> {}).sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(errors -> errors.authenticationEntryPoint((request, response, error) -> response.sendError(401, "Authentication required")))
                 .authenticationProvider(provider).authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index.html", "/app.css", "/app.js", "/arcane-crest.png", "/pixel-chess-v1/**", "/actuator/health", "/ws/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers("/", "/index.html", "/assets/**", "/pixel-chess-v1/**", "/actuator/health", "/ws/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/guest").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/cards", "/api/shop", "/api/leaderboard").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN").anyRequest().authenticated())
                 .addFilterBefore(jwt, UsernamePasswordAuthenticationFilter.class).build();

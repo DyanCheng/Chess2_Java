@@ -35,7 +35,8 @@ class ChessApiTest {
 
     @Test
     void frontendAssetsArePublicButGameplayRemainsProtected() throws Exception {
-        mvc.perform(get("/app.js")).andExpect(status().isOk());
+        mvc.perform(get("/assets/js/main.js")).andExpect(status().isOk());
+        mvc.perform(get("/assets/css/app.css")).andExpect(status().isOk());
         mvc.perform(get("/pixel-chess-v1/pieces/W_King.png")).andExpect(status().isOk());
         mvc.perform(get("/api/games/history")).andExpect(status().isUnauthorized());
     }
@@ -47,6 +48,19 @@ class ChessApiTest {
                 .andExpect(status().isBadRequest());
         mvc.perform(post("/api/games/{id}/moves",gameId).header("Authorization",bearer(token)).contentType(MediaType.APPLICATION_JSON).content("{\"from\":\"e2\",\"to\":\"e4\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.currentTurn").value("WHITE"));
+    }
+
+    @Test
+    void guestKeyRestoresTheSameAccountInsteadOfCreatingAnotherOne() throws Exception {
+        String guestKey = UUID.randomUUID().toString();
+        String request = mapper.writeValueAsString(new Guest(guestKey));
+        MvcResult first = mvc.perform(post("/api/auth/guest").contentType(MediaType.APPLICATION_JSON).content(request))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.player.accountType").value("GUEST")).andReturn();
+        MvcResult second = mvc.perform(post("/api/auth/guest").contentType(MediaType.APPLICATION_JSON).content(request))
+                .andExpect(status().isOk()).andReturn();
+        String firstUser = mapper.readTree(first.getResponse().getContentAsString()).at("/player/username").asText();
+        String secondUser = mapper.readTree(second.getResponse().getContentAsString()).at("/player/username").asText();
+        org.junit.jupiter.api.Assertions.assertEquals(firstUser, secondUser);
     }
 
     @Test
@@ -87,4 +101,5 @@ class ChessApiTest {
     }
     private static String bearer(String token) { return "Bearer "+token; }
     private record Registration(String username,String email,String password) { }
+    private record Guest(String guestKey) { }
 }

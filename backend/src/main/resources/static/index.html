@@ -4,59 +4,48 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101827">
-  <title>Chess2 Java</title>
-  <link rel="stylesheet" href="/app.css">
+  <meta name="description" content="Chess2 – cờ vua chiến thuật với thẻ kỹ năng, puzzle và xếp hạng.">
+  <title>Chess2 · Java Edition</title>
+  <link rel="stylesheet" href="/assets/css/app.css">
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="#dashboard" aria-label="Chess2 Java">♞ <span>Chess2</span><small>JAVA</small></a>
-    <div id="session-summary" class="session-summary" hidden>
-      <span id="wallet-gold">◈ 0</span><span id="wallet-gems">◆ 0</span><button id="sign-out" class="text-button">Đăng xuất</button>
+  <header class="site-header">
+    <a class="brand" href="#/home" aria-label="Chess2 trang chủ"><span class="brand-mark">♞</span><span>CHESS<sup>2</sup></span><small>JAVA EDITION</small></a>
+    <div id="session-bar" class="session-bar" hidden>
+      <span class="currency gold">◈ <b id="header-gold">0</b></span><span class="currency gem">◆ <b id="header-gems">0</b></span>
+      <button id="profile-button" class="profile-button" type="button"><span id="header-avatar">C</span><span id="header-name">Kỳ thủ</span></button><button id="sign-out" class="button ghost compact" type="button">Đăng xuất</button>
     </div>
   </header>
-
-  <main class="shell">
-    <section id="auth-view" class="auth-layout">
-      <div class="hero-copy"><p class="eyebrow">SPRING BOOT · SUPABASE</p><h1>Cờ vua chiến thuật<br><em>đậm chất pixel.</em></h1><p>Chơi cờ, quản lý HP, thu thập thẻ kỹ năng, giải puzzle và leo bảng xếp hạng.</p></div>
-      <form id="auth-form" class="panel auth-panel">
-        <div class="tabs"><button class="tab active" type="button" data-auth-mode="login">Đăng nhập</button><button class="tab" type="button" data-auth-mode="register">Tạo tài khoản</button></div>
-        <h2 id="auth-title">Chào mừng trở lại</h2>
-        <label>Tên người chơi<input id="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9_]+" autocomplete="username" required></label>
-        <label id="email-field" hidden>Email<input id="email" type="email" maxlength="254" autocomplete="email"></label>
-        <label>Mật khẩu<input id="password" type="password" minlength="8" maxlength="72" autocomplete="current-password" required></label>
-        <button id="auth-submit" class="primary" type="submit">Đăng nhập</button>
-        <button id="guest-login" class="secondary" type="button">Chơi với tài khoản khách</button>
-        <p id="auth-message" class="message" aria-live="polite"></p>
+  <main class="app-shell">
+    <section id="auth-view" class="auth-screen">
+      <div class="auth-intro"><p class="kicker">CỜ VUA · THẺ CHIẾN THUẬT · JAVA</p><h1>Mỗi nước đi<br><em>là một nước cờ.</em></h1><p>Trải nghiệm cờ vua pixel rõ ràng, đấu Bot hoặc PvP, thu thập thẻ chức năng và chinh phục bảng xếp hạng.</p><div class="feature-list"><span>♜ Bàn cờ chuẩn 8×8</span><span>✦ Tài khoản riêng tư</span><span>⚔ PvE & PvP</span></div></div>
+      <form id="auth-form" class="auth-card" novalidate>
+        <div class="auth-tabs" role="tablist"><button class="auth-tab active" type="button" data-auth-mode="login">Đăng nhập</button><button class="auth-tab" type="button" data-auth-mode="register">Tạo tài khoản</button></div>
+        <div><p class="kicker" id="auth-eyebrow">CHÀO MỪNG TRỞ LẠI</p><h2 id="auth-title">Vào phòng cờ</h2></div>
+        <label class="field"><span>Tên người chơi</span><input id="username" name="username" autocomplete="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9_]+" required></label>
+        <label id="email-field" class="field" hidden><span>Email</span><input id="email" name="email" type="email" autocomplete="email" maxlength="254"></label>
+        <label class="field"><span>Mật khẩu</span><input id="password" name="password" type="password" autocomplete="current-password" minlength="8" maxlength="72" required></label>
+        <button id="auth-submit" class="button primary" type="submit">Đăng nhập</button><button id="guest-login" class="button secondary" type="button">Chơi nhanh với tài khoản khách</button><p id="auth-message" class="form-message" role="alert" aria-live="polite"></p>
       </form>
     </section>
-
     <section id="app-view" hidden>
-      <nav class="app-nav" aria-label="Điều hướng ứng dụng">
-        <button class="nav-button active" data-view="dashboard">Tổng quan</button><button class="nav-button" data-view="play">Chơi cờ</button><button class="nav-button" data-view="cards">Thẻ & Shop</button><button class="nav-button" data-view="puzzles">Puzzle</button><button class="nav-button" data-view="ranking">Xếp hạng</button>
-      </nav>
-
-      <section id="view-dashboard" class="view active">
-        <div class="headline"><div><p class="eyebrow">TRUNG TÂM CHIẾN THUẬT</p><h1>Chào, <span id="player-name">kỳ thủ</span></h1><p id="player-level">Cấp 1 · 0 XP</p></div><div class="wallet-card"><span>Gold <strong id="dashboard-gold">0</strong></span><span>Gems <strong id="dashboard-gems">0</strong></span></div></div>
-        <div class="stat-grid"><article class="panel stat"><span>Cấp độ</span><strong id="stat-level">1</strong></article><article class="panel stat"><span>Kinh nghiệm</span><strong id="stat-xp">0</strong></article><article class="panel stat"><span>Ván gần đây</span><strong id="stat-games">0</strong></article></div>
-        <section class="panel"><div class="section-heading"><div><p class="eyebrow">VÀO TRẬN</p><h2>Chọn chế độ</h2></div></div><div class="mode-grid"><article class="mode-card"><span>♞</span><strong>Đấu Bot</strong><small>Bot Dễ đi ngẫu nhiên, Trung bình ưu tiên ăn quân, Khó ưu tiên nước đi giá trị.</small><label>Độ khó<select id="pve-difficulty"><option value="EASY">Dễ</option><option value="MEDIUM" selected>Trung bình</option><option value="HARD">Khó</option></select></label><button class="primary" data-create-game="PVE">Bắt đầu PVE</button></article><button class="mode-card" data-quick-match><span>⚔</span><strong>Đấu trực tuyến</strong><small>Ghép ngay với phòng PVP đang chờ, hoặc tạo phòng mới.</small></button><button class="mode-card" data-create-game="LOCAL"><span>♜</span><strong>Cùng thiết bị</strong><small>Hai người luân phiên trên một bàn cờ.</small></button></div></section>
-        <section class="panel"><div class="section-heading"><div><p class="eyebrow">PHÒNG CHỜ</p><h2>Ván PVP đang mở</h2></div><button id="refresh-waiting" class="text-button">Làm mới</button></div><div id="waiting-games" class="stack empty">Chưa có phòng đang chờ.</div></section>
+      <nav class="main-nav" aria-label="Điều hướng chính"><a href="#/home" data-route="home">Tổng quan</a><a href="#/play" data-route="play">Chơi cờ</a><a href="#/collection" data-route="collection">Bộ sưu tập</a><a href="#/puzzles" data-route="puzzles">Puzzle</a><a href="#/leaderboard" data-route="leaderboard">Xếp hạng</a></nav>
+      <section class="page" data-page="home">
+        <div class="page-heading home-heading"><div><p class="kicker">PHÒNG ĐIỀU KHIỂN</p><h1>Chào, <span id="player-name">Kỳ thủ</span></h1><p id="player-subtitle">Sẵn sàng cho một ván đấu mới?</p></div><div class="rank-card"><span>RATING</span><strong id="player-rating">1000</strong><small id="player-record">0 thắng · 0 thua · 0 hòa</small></div></div>
+        <div class="quick-stats"><article><span>Cấp độ</span><strong id="player-level">1</strong></article><article><span>Kinh nghiệm</span><strong id="player-xp">0</strong></article><article><span>Gold</span><strong id="dashboard-gold">0</strong></article></div>
+        <section class="panel"><div class="section-title"><div><p class="kicker">BẮT ĐẦU VÁN MỚI</p><h2>Chọn đối thủ</h2></div></div><div class="mode-grid"><article class="mode-card"><span class="mode-icon">♟</span><h3>Đấu Bot</h3><p>Luyện chiến thuật với ba cấp độ AI.</p><label class="select-field"><span>Độ khó</span><select id="pve-difficulty"><option value="EASY">Dễ</option><option value="MEDIUM" selected>Trung bình</option><option value="HARD">Khó</option></select></label><button class="button primary" data-create-game="PVE" type="button">Bắt đầu PvE</button></article><article class="mode-card featured"><span class="mode-icon">⚔</span><h3>Ghép trận PvP</h3><p>Tìm phòng chờ hoặc tạo trận xếp hạng.</p><div class="mode-spacer"></div><button id="quick-match" class="button primary" type="button">Tìm đối thủ</button></article><article class="mode-card"><span class="mode-icon">♞</span><h3>Cùng thiết bị</h3><p>Hai người chơi trên một bàn cờ.</p><div class="mode-spacer"></div><button class="button secondary" data-create-game="LOCAL" type="button">Chơi local</button></article></div></section>
+        <section class="panel"><div class="section-title"><div><p class="kicker">PHÒNG PVP</p><h2>Đang chờ đối thủ</h2></div><button id="refresh-waiting" class="button ghost compact" type="button">Làm mới</button></div><div id="waiting-games" class="list-state">Chưa có phòng đang chờ.</div></section>
       </section>
-
-      <section id="view-play" class="view">
-        <div class="section-heading"><div><p class="eyebrow">BÀN CỜ</p><h1 id="game-heading">Bắt đầu ván mới</h1><p id="game-status">Chọn chế độ từ trang Tổng quan.</p></div><div class="inline-actions"><button id="resign-game" class="secondary" hidden>Đầu hàng</button><button id="leave-game" class="secondary">Rời bàn cờ</button></div></div>
-        <div class="game-layout"><div class="board-column"><div class="hp-row"><span>Trắng</span><div class="hp-bar"><i id="white-hp"></i></div><b id="white-hp-value">100 HP</b></div><div id="board" class="board" role="grid" aria-label="Bàn cờ vua"></div><div class="hp-row"><span>Đen</span><div class="hp-bar"><i id="black-hp"></i></div><b id="black-hp-value">100 HP</b></div></div><aside class="panel game-aside"><div><p class="eyebrow">THẺ SỞ HỮU</p><h2>Chiêu thức</h2></div><div id="game-cards" class="stack empty">Mua thẻ trong Shop để dùng khi đấu.</div><p class="hint">Thẻ hồi máu tác dụng lên bạn; Arcane Strike gây sát thương đối thủ.</p></aside></div>
+      <section class="page" data-page="play">
+        <div class="page-heading"><div><p class="kicker">VÁN ĐẤU</p><h1 id="game-title">Bàn cờ</h1><p id="game-status">Chọn một chế độ để bắt đầu.</p></div><div class="page-actions"><button id="resign-game" class="button danger" type="button" hidden>Đầu hàng</button><button id="leave-game" class="button ghost" type="button">Rời bàn cờ</button></div></div>
+        <div class="game-layout"><div class="board-area"><div class="player-strip"><span class="player-color white-dot"></span><span>Trắng</span><div class="health-track"><i id="white-hp"></i></div><b id="white-hp-label">100</b></div><div class="board-wrap"><div id="board" class="chess-board" role="grid" aria-label="Bàn cờ vua"></div><div class="file-labels" aria-hidden="true"><span>a</span><span>b</span><span>c</span><span>d</span><span>e</span><span>f</span><span>g</span><span>h</span></div></div><div class="player-strip"><span class="player-color black-dot"></span><span>Đen</span><div class="health-track"><i id="black-hp"></i></div><b id="black-hp-label">100</b></div></div><aside class="game-panel"><p class="kicker">THẺ TRONG VÁN</p><h2>Chiêu thức</h2><p class="side-copy">Mua thẻ từ Bộ sưu tập để dùng trong trận.</p><div id="game-cards" class="list-state">Chưa chọn ván đấu.</div></aside></div>
       </section>
-
-      <section id="view-cards" class="view">
-        <div class="section-heading"><div><p class="eyebrow">BỘ SƯU TẬP</p><h1>Thẻ & cửa hàng</h1><p>Dùng Gold từ ví để mua thẻ kỹ năng.</p></div></div>
-        <div class="two-column"><section class="panel"><p class="eyebrow">KHO THẺ</p><h2>Thẻ của bạn</h2><div id="card-inventory" class="card-grid empty">Chưa sở hữu thẻ nào.</div></section><section class="panel"><p class="eyebrow">CỬA HÀNG</p><h2>Thẻ đang bán</h2><div id="shop-items" class="card-grid empty">Đang tải cửa hàng...</div></section></div>
-      </section>
-
-      <section id="view-puzzles" class="view"><div class="section-heading"><div><p class="eyebrow">LUYỆN TẬP</p><h1>Puzzle chiến thuật</h1><p>Nhập nước đi hay nhất để nhận Gold.</p></div></div><div id="puzzles" class="puzzle-grid empty">Đang tải puzzle...</div></section>
-      <section id="view-ranking" class="view"><div class="section-heading"><div><p class="eyebrow">BẢNG XẾP HẠNG</p><h1>Kỳ thủ dẫn đầu</h1><p>Xếp theo kinh nghiệm.</p></div></div><div id="leaderboard" class="panel leaderboard empty">Chưa có dữ liệu xếp hạng.</div></section>
+      <section class="page" data-page="collection"><div class="page-heading"><div><p class="kicker">KHO VẬT PHẨM</p><h1>Thẻ & cửa hàng</h1><p>Mua và quản lý thẻ chiến thuật bằng Gold.</p></div></div><div class="two-column"><section class="panel"><p class="kicker">SỞ HỮU</p><h2>Kho thẻ</h2><div id="card-inventory" class="card-grid list-state">Đang tải kho thẻ…</div></section><section class="panel"><p class="kicker">CỬA HÀNG</p><h2>Thẻ đang bán</h2><div id="shop-items" class="card-grid list-state">Đang tải cửa hàng…</div></section></div></section>
+      <section class="page" data-page="puzzles"><div class="page-heading"><div><p class="kicker">LUYỆN TẬP</p><h1>Puzzle chiến thuật</h1><p>Giải nước đi tốt nhất để nhận Gold. Mỗi puzzle chỉ nhận thưởng một lần.</p></div></div><div id="puzzles" class="puzzle-grid list-state">Đang tải puzzle…</div></section>
+      <section class="page" data-page="leaderboard"><div class="page-heading"><div><p class="kicker">BẢNG XẾP HẠNG</p><h1>Những kỳ thủ dẫn đầu</h1><p>Xếp theo Rating và kinh nghiệm.</p></div></div><div id="leaderboard" class="panel leaderboard list-state">Đang tải bảng xếp hạng…</div></section>
     </section>
   </main>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="/app.js" defer></script>
+  <script type="module" src="/assets/js/main.js"></script>
 </body>
 </html>

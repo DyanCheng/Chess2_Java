@@ -17,6 +17,8 @@ public class UserAccount implements UserDetails {
     @Column(nullable = false, unique = true, length = 254) private String email;
     @Column(name = "password_hash", nullable = false, length = 100) private String passwordHash;
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 16) private Role role = Role.PLAYER;
+    @Enumerated(EnumType.STRING) @Column(name = "account_type", nullable = false, length = 16) private AccountType accountType = AccountType.REGISTERED;
+    @Column(name = "guest_key", unique = true, length = 64) private String guestKey;
     @Column(nullable = false) private long experience = 0;
     @Column(nullable = false) private int level = 1;
     @Column(nullable = false) private int rating = 1000;
@@ -27,11 +29,19 @@ public class UserAccount implements UserDetails {
 
     protected UserAccount() { }
     public UserAccount(String username, String email, String passwordHash) { this.username = username; this.email = email; this.passwordHash = passwordHash; }
+    public static UserAccount guest(String username, String email, String guestKey, String passwordHash) {
+        UserAccount account = new UserAccount(username, email, passwordHash);
+        account.accountType = AccountType.GUEST;
+        account.guestKey = guestKey;
+        return account;
+    }
     public UUID getId() { return id; }
     @Override public String getUsername() { return username; }
     public String getEmail() { return email; }
     @Override public String getPassword() { return passwordHash; }
     public Role getRole() { return role; }
+    public AccountType getAccountType() { return accountType; }
+    public boolean isGuest() { return accountType == AccountType.GUEST; }
     public long getExperience() { return experience; }
     public int getLevel() { return level; }
     public int getRating() { return rating; }

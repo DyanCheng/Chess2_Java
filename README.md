@@ -1,5 +1,25 @@
 # Chess2 Java
 
+Ứng dụng Chess2 viết lại bằng Java 21 và Spring Boot: cờ PvE/PvP/local, HP, thẻ kỹ năng, shop, tiền tệ, puzzle và leaderboard. Frontend được Spring Boot phục vụ trực tiếp, nên chỉ có một ứng dụng để triển khai.
+
+## Cấu trúc
+
+```
+backend/                         # Vercel Root Directory và ứng dụng triển khai
+  src/main/java/com/chess2/      # API, bảo mật JWT, domain và service
+  src/main/resources/
+    db/migration/                # Flyway migrations cho schema chess
+    static/
+      index.html                 # khung trang
+      assets/css/app.css         # giao diện responsive
+      assets/js/                 # state, API client, render và điều phối UI
+      pixel-chess-v1/            # sprite kèm attribution
+docs/                            # tài liệu dự án
+.github/workflows/ci.yml         # Maven verify và Docker build
+```
+
+Phiên đăng nhập được lưu dưới khóa `chess2.session.v2`. Tài khoản khách dùng một `guestKey` ổn định theo trình duyệt, vì vậy bấm “Chơi nhanh” lần sau sẽ quay về đúng tài khoản cũ thay vì ghi đè/tạo tài khoản khác.
+
 ## Frontend và database
 
 Frontend web nằm trong `backend/src/main/resources/static/` và được Spring Boot phục vụ tại `/`;
@@ -60,14 +80,14 @@ mvn verify
 
 ## Vercel
 
-Vercel sẽ build `Dockerfile.vercel` khi repository được import như một Container project. Cấu hình Environment Variables cho Preview và Production:
+Trong Vercel, đặt **Root Directory = `backend`**. Vercel sẽ dùng `backend/Dockerfile`; không cần `vercel.json` hay Dockerfile ở gốc repository. Cấu hình Environment Variables cho Preview và Production:
 
 - `SUPABASE_DB_URL`: JDBC Session pooler có `sslmode=require`.
 - `JWT_SECRET`: secret Base64 tối thiểu 32 byte.
 - `CORS_ALLOWED_ORIGINS`: URL Vercel của mobile-web/demo, phân tách bằng dấu phẩy.
 - `DB_POOL_SIZE`: mặc định `4`.
 
-Kết nối GitHub repository trong Vercel để mỗi push/PR tạo deployment Preview và push vào `main` tạo Production. GitHub Actions thực hiện Maven verify và Docker build trước; Vercel là lớp CD.
+Sau khi thay đổi biến môi trường, cần tạo deployment mới; biến không áp dụng ngược cho deployment cũ. Kết nối GitHub repository trong Vercel để mỗi push/PR tạo deployment Preview và push vào `main` tạo Production. GitHub Actions thực hiện Maven verify và Docker build trước; Vercel là lớp CD.
 
 Không đặt database password hoặc JWT secret trong GitHub Actions, `.env.example`, source code hay mobile client.
 

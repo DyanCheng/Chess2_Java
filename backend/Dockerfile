@@ -9,7 +9,7 @@ RUN mvn -B -DskipTests package
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
-RUN useradd --system --uid 10001 --create-home spring
+RUN useradd --uid 10001 --create-home spring
 COPY --from=build /app/target/chess2-1.0.0.jar app.jar
 USER spring
 EXPOSE 8080
