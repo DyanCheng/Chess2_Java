@@ -44,10 +44,12 @@ Profile `demo` dùng H2 trong bộ nhớ, tự seed thẻ, shop và puzzle; dữ
 
 ### Chạy với Supabase
 
-1. Tạo `backend/.env` hoặc file `.env` ở repository từ `.env.example` và điền `SUPABASE_DB_URL`, `JWT_SECRET`.
-2. Lấy chuỗi JDBC **Session pooler** của Supabase; không dùng Transaction pooler cho Hibernate/JPA.
+1. Tạo file `.env` ở gốc repository từ `.env.example` và điền `SUPABASE_DB_URL`, `JWT_SECRET`. `docker compose` sẽ tự nạp file này.
+2. Lấy chuỗi JDBC **Session pooler** từ Supabase Dashboard → **Connect** → **Session pooler** → **JDBC**; không dùng Project URL (`https://<project-ref>.supabase.co`) hay Transaction pooler cho Hibernate/JPA. Thêm `sslmode=require` nếu chuỗi chưa có.
 3. Chạy `docker compose up --build`.
 4. Health check: `http://localhost:8080/actuator/health`.
+
+Khi chạy `mvn spring-boot:run` trực tiếp, Spring Boot **không tự đọc file `.env`**. Hãy nạp `SUPABASE_DB_URL` và `JWT_SECRET` vào environment của terminal trước khi chạy, hoặc chạy bằng Docker Compose.
 
 Hoặc chạy test không cần Supabase:
 
