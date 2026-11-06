@@ -37,6 +37,9 @@ app:
   security:
     jwt-secret: ${JWT_SECRET}
     jwt-expiration-minutes: ${JWT_EXPIRATION_MINUTES:60}
+  password-reset:
+    public-url: ${PUBLIC_APP_URL:http://localhost:8080/}
+    mail-from: ${MAIL_FROM:}
 
 management:
   endpoints:

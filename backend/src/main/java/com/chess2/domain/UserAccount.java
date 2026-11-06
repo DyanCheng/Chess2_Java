@@ -49,6 +49,7 @@ public class UserAccount implements UserDetails {
     public int getLosses() { return losses; }
     public int getDraws() { return draws; }
     public void grantAdmin() { role = Role.ADMIN; }
+    public void changePassword(String encodedPassword) { passwordHash = encodedPassword; }
     public void addExperience(long amount) { experience += amount; level = (int) Math.max(1, experience / 500 + 1); }
     public void recordWin() { wins++; rating += 24; addExperience(120); }
     public void recordLoss() { losses++; rating = Math.max(0, rating - 16); addExperience(25); }

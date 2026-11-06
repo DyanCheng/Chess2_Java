@@ -86,6 +86,8 @@ Vercel build từ gốc repository bằng `Dockerfile.vercel`; file này chỉ c
 - `JWT_SECRET`: secret Base64 tối thiểu 32 byte.
 - `CORS_ALLOWED_ORIGINS`: URL Vercel của mobile-web/demo, phân tách bằng dấu phẩy.
 - `DB_POOL_SIZE`: mặc định `4`.
+- `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD`, `MAIL_FROM`: SMTP cho email quên mật khẩu.
+- `PUBLIC_APP_URL`: URL public của app, ví dụ `https://chess2java.vercel.app/`.
 
 Sau khi thay đổi biến môi trường, cần tạo deployment mới; biến không áp dụng ngược cho deployment cũ. Kết nối GitHub repository trong Vercel để mỗi push/PR tạo deployment Preview và push vào `main` tạo Production. GitHub Actions thực hiện Maven verify và Docker build trước; Vercel là lớp CD.
 

@@ -35,7 +35,7 @@ class ChessApiTest {
 
     @Test
     void frontendAssetsArePublicButGameplayRemainsProtected() throws Exception {
-        mvc.perform(get("/assets/js/main.js")).andExpect(status().isOk());
+        mvc.perform(get("/assets/js/app.js")).andExpect(status().isOk());
         mvc.perform(get("/assets/css/app.css")).andExpect(status().isOk());
         mvc.perform(get("/pixel-chess-v1/pieces/W_King.png")).andExpect(status().isOk());
         mvc.perform(get("/api/games/history")).andExpect(status().isUnauthorized());
@@ -61,6 +61,12 @@ class ChessApiTest {
         String firstUser = mapper.readTree(first.getResponse().getContentAsString()).at("/player/username").asText();
         String secondUser = mapper.readTree(second.getResponse().getContentAsString()).at("/player/username").asText();
         org.junit.jupiter.api.Assertions.assertEquals(firstUser, secondUser);
+    }
+
+    @Test
+    void passwordResetRequestNeedsMailConfigurationInsteadOfPretendingToSend() throws Exception {
+        mvc.perform(post("/api/auth/password-reset/request").contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"missing@example.com\"}"))
+                .andExpect(status().isServiceUnavailable());
     }
 
     @Test

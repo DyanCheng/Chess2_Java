@@ -25,8 +25,10 @@
         <label class="field"><span>Tên người chơi</span><input id="username" name="username" autocomplete="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9_]+" required></label>
         <label id="email-field" class="field" hidden><span>Email</span><input id="email" name="email" type="email" autocomplete="email" maxlength="254"></label>
         <label class="field"><span>Mật khẩu</span><input id="password" name="password" type="password" autocomplete="current-password" minlength="8" maxlength="72" required></label>
-        <button id="auth-submit" class="button primary" type="submit">Đăng nhập</button><button id="guest-login" class="button secondary" type="button">Chơi nhanh với tài khoản khách</button><p id="auth-message" class="form-message" role="alert" aria-live="polite"></p>
+        <button id="auth-submit" class="button primary" type="submit">Đăng nhập</button><button id="guest-login" class="button secondary" type="button">Chơi nhanh với tài khoản khách</button><button id="forgot-password" class="text-link" type="button">Quên mật khẩu?</button><p id="auth-message" class="form-message" role="alert" aria-live="polite"></p>
       </form>
+      <form id="forgot-form" class="auth-card" hidden novalidate><p class="kicker">KHÔI PHỤC TÀI KHOẢN</p><h2>Đặt lại mật khẩu</h2><p class="muted">Nhập email đã đăng ký. Chúng tôi sẽ gửi liên kết chỉ dùng một lần.</p><label class="field"><span>Email</span><input id="reset-email" type="email" autocomplete="email" required></label><button id="reset-request" class="button primary" type="submit">Gửi liên kết</button><button id="back-to-login" class="text-link" type="button">Quay lại đăng nhập</button><p id="reset-message" class="form-message" role="alert" aria-live="polite"></p></form>
+      <form id="new-password-form" class="auth-card" hidden novalidate><p class="kicker">MẬT KHẨU MỚI</p><h2>Chọn mật khẩu mới</h2><p class="muted">Liên kết có hiệu lực trong 15 phút.</p><label class="field"><span>Mật khẩu mới</span><input id="new-password" type="password" autocomplete="new-password" minlength="8" maxlength="72" required></label><button id="new-password-submit" class="button primary" type="submit">Lưu mật khẩu mới</button><p id="new-password-message" class="form-message" role="alert" aria-live="polite"></p></form>
     </section>
     <section id="app-view" hidden>
       <nav class="main-nav" aria-label="Điều hướng chính"><a href="#/home" data-route="home">Tổng quan</a><a href="#/play" data-route="play">Chơi cờ</a><a href="#/collection" data-route="collection">Bộ sưu tập</a><a href="#/puzzles" data-route="puzzles">Puzzle</a><a href="#/leaderboard" data-route="leaderboard">Xếp hạng</a></nav>
@@ -46,6 +48,6 @@
     </section>
   </main>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="/assets/js/main.js"></script>
+  <script type="module" src="/assets/js/app.js"></script>
 </body>
 </html>
