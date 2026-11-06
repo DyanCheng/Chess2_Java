@@ -24,3 +24,9 @@
 .square.is-frozen { box-shadow:inset 0 0 0 4px #84b7ff; }
 .square.is-protected { box-shadow:inset 0 0 0 4px var(--gold); }
 .button.is-armed { border-color:var(--gold); background:#4c4932; color:#fff8d4; }
+
+/* The board owns its geometry; pieces never influence grid track sizing or pointer input. */
+.chess-board { inline-size:100%; grid-template-rows:repeat(8,minmax(0,1fr)); }
+.square { aspect-ratio:1; touch-action:manipulation; user-select:none; -webkit-user-select:none; }
+.piece { font-size:clamp(24px,7.8vmin,62px); pointer-events:none; -webkit-user-drag:none; }
+
