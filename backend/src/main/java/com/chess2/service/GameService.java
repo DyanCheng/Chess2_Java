@@ -15,13 +15,12 @@ import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 public class GameService {
-    private final GameRepository games; private final CatalogService catalog; private final UserRepository users; private final ObjectMapper mapper; private final SimpMessagingTemplate messages;
-    public GameService(GameRepository games, CatalogService catalog, UserRepository users, ObjectMapper mapper, SimpMessagingTemplate messages) { this.games=games; this.catalog=catalog; this.users=users; this.mapper=mapper; this.messages=messages; }
+    private final GameRepository games; private final CatalogService catalog; private final UserRepository users; private final ObjectMapper mapper;
+    public GameService(GameRepository games, CatalogService catalog, UserRepository users, ObjectMapper mapper) { this.games=games; this.catalog=catalog; this.users=users; this.mapper=mapper; }
 
     @Transactional public GameDtos.GameResponse create(UserAccount player, GameType type, String difficulty) {
         UUID black = type == GameType.LOCAL ? player.getId() : null;
@@ -128,7 +127,7 @@ public class GameService {
     private String ownSide(Game game, UserAccount player) { if (game.getType()==GameType.LOCAL) return game.getCurrentTurn(); return player.getId().equals(game.getWhitePlayerId()) ? "WHITE" : "BLACK"; }
     private Game game(UUID id) { return games.findById(id).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,"Game not found")); }
     private Game locked(UUID id) { return games.findWithLockById(id).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,"Game not found")); }
-    private GameDtos.GameResponse publish(Game game) { GameDtos.GameResponse response=view(game); messages.convertAndSend("/topic/games/"+game.getId(),response); return response; }
+    private GameDtos.GameResponse publish(Game game) { return view(game); }
     private String enemyPiece(Game game, String square, String side) { return targetPiece(game, square, side, "Hãy chọn quân đối phương trên bàn cờ"); }
     private String ownPiece(Game game, String square, String side) { return targetPiece(game, square, side, "Hãy chọn quân của bạn trên bàn cờ"); }
     private String targetPiece(Game game, String square, String side, String message) { if (!square.matches("[a-h][1-8]")) throw new ApiException(HttpStatus.BAD_REQUEST, message); String piece = ChessBoard.pieceAt(mapper, game.getBoard(), square); if (piece == null || piece.charAt(0) != Character.toLowerCase(side.charAt(0))) throw new ApiException(HttpStatus.BAD_REQUEST, message); return square; }
