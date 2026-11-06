@@ -1,7 +1,12 @@
 package com.chess2.service;
 
 import com.chess2.api.ApiException;
-import com.chess2.domain.*;
+import com.chess2.domain.BotDifficulty;
+import com.chess2.domain.FunctionCard;
+import com.chess2.domain.Game;
+import com.chess2.domain.GameStatus;
+import com.chess2.domain.GameType;
+import com.chess2.domain.UserAccount;
 import com.chess2.dto.GameDtos;
 import com.chess2.repository.GameRepository;
 import com.chess2.repository.UserRepository;
@@ -17,32 +22,92 @@ import org.springframework.stereotype.Service;
 public class GameService {
     private final GameRepository games; private final CatalogService catalog; private final UserRepository users; private final ObjectMapper mapper; private final SimpMessagingTemplate messages;
     public GameService(GameRepository games, CatalogService catalog, UserRepository users, ObjectMapper mapper, SimpMessagingTemplate messages) { this.games=games; this.catalog=catalog; this.users=users; this.mapper=mapper; this.messages=messages; }
-    @Transactional public GameDtos.GameResponse create(UserAccount player, GameType type) {
+
+    @Transactional public GameDtos.GameResponse create(UserAccount player, GameType type, String difficulty) {
         UUID black = type == GameType.LOCAL ? player.getId() : null;
-        Game game=games.save(new Game(type, player.getId(), black, ChessBoard.initial(mapper))); return publish(game);
+        BotDifficulty botDifficulty = difficulty == null ? BotDifficulty.MEDIUM : BotDifficulty.valueOf(difficulty);
+        return publish(games.save(new Game(type, player.getId(), black, ChessBoard.initial(mapper), botDifficulty)));
     }
-    @Transactional public GameDtos.GameResponse join(UserAccount player, UUID gameId) { Game game=game(gameId); if (game.getType()!=GameType.PVP || game.getStatus()!=GameStatus.WAITING) throw new ApiException(HttpStatus.CONFLICT,"Game cannot be joined"); game.join(player.getId()); return publish(game); }
+
+    @Transactional public GameDtos.GameResponse quickMatch(UserAccount player) {
+        for (Game candidate : games.findTop20ByStatusOrderByCreatedAtAsc(GameStatus.WAITING)) {
+            if (candidate.getWhitePlayerId().equals(player.getId())) continue;
+            Game locked = locked(candidate.getId());
+            if (locked.getStatus() == GameStatus.WAITING && locked.getType() == GameType.PVP && locked.getBlackPlayerId() == null) { locked.join(player.getId()); return publish(locked); }
+        }
+        return create(player, GameType.PVP, BotDifficulty.MEDIUM.name());
+    }
+
+    @Transactional public GameDtos.GameResponse join(UserAccount player, UUID gameId) {
+        Game game = locked(gameId);
+        if (game.getWhitePlayerId().equals(player.getId())) throw new ApiException(HttpStatus.CONFLICT, "You cannot join your own game");
+        if (game.getType()!=GameType.PVP || game.getStatus()!=GameStatus.WAITING) throw new ApiException(HttpStatus.CONFLICT,"Game cannot be joined");
+        game.join(player.getId()); return publish(game);
+    }
+
     @Transactional public GameDtos.GameResponse move(UserAccount player, UUID gameId, GameDtos.MoveRequest request) {
-        Game game=participant(player, gameId); if (game.getStatus()!=GameStatus.PLAYING) throw new ApiException(HttpStatus.CONFLICT,"Game is not active");
-        boolean white=game.getCurrentTurn().equals("WHITE"); UUID expected=white?game.getWhitePlayerId():game.getBlackPlayerId();
-        if (game.getType()!=GameType.PVE && !player.getId().equals(expected)) throw new ApiException(HttpStatus.FORBIDDEN,"It is not your turn");
+        Game game = participant(player, gameId, true);
+        if (game.getStatus()!=GameStatus.PLAYING) throw new ApiException(HttpStatus.CONFLICT,"Game is not active");
+        boolean white = game.getCurrentTurn().equals("WHITE"); UUID expected = white ? game.getWhitePlayerId() : game.getBlackPlayerId();
+        if (game.getType()!=GameType.LOCAL && !player.getId().equals(expected)) throw new ApiException(HttpStatus.FORBIDDEN,"It is not your turn");
         if (game.getType()==GameType.PVE && !white) throw new ApiException(HttpStatus.CONFLICT,"Wait for the bot");
-        game.updateBoard(ChessBoard.move(mapper,game.getBoard(),request.from(),request.to(),game.getCurrentTurn()));
-        if (game.getType()==GameType.PVE && game.getStatus()==GameStatus.PLAYING && game.getCurrentTurn().equals("BLACK")) { try { game.updateBoard(ChessBoard.botMove(mapper,game.getBoard())); } catch (ApiException ignored) { game.finish(GameStatus.DRAW); } }
+        game.updateBoard(ChessBoard.move(mapper, game.getBoard(), request.from(), request.to(), game.getCurrentTurn()));
+        if (endIfKingCaptured(game)) return publish(game);
+        if (game.getType()==GameType.PVE && game.getCurrentTurn().equals("BLACK")) {
+            try { game.updateBoard(ChessBoard.botMove(mapper, game.getBoard(), game.getBotDifficulty())); }
+            catch (ApiException ignored) { game.finish(GameStatus.DRAW); settleDraw(game); }
+            endIfKingCaptured(game);
+        }
         return publish(game);
     }
+
     @Transactional public GameDtos.GameResponse useCard(UserAccount player, UUID gameId, GameDtos.UseCardRequest request) {
-        Game game=participant(player,gameId); FunctionCard card=catalog.useCard(player,request.cardId());
-        String ownSide=player.getId().equals(game.getWhitePlayerId())?"WHITE":"BLACK"; String other=ownSide.equals("WHITE")?"BLACK":"WHITE";
+        Game game = participant(player, gameId, true);
+        if (game.getStatus()!=GameStatus.PLAYING) throw new ApiException(HttpStatus.CONFLICT,"Game is not active");
+        FunctionCard card = catalog.useCard(player,request.cardId());
+        String ownSide = ownSide(game, player); String other = ownSide.equals("WHITE") ? "BLACK" : "WHITE";
         if (card.getEffectType().equals("HEAL")) game.adjustHp(ownSide, Math.max(1,card.getEffectValue()));
         if (card.getEffectType().equals("DOUBLE_DAMAGE")) game.adjustHp(other, -Math.max(1,card.getEffectValue()));
+        if (game.getStatus()==GameStatus.FINISHED) { game.finishWithWinner(game.getWhiteHp() == 0 ? "BLACK" : "WHITE"); settleWinner(game); }
         return publish(game);
     }
-    public GameDtos.GameResponse get(UserAccount player, UUID id) { return view(participant(player,id)); }
+
+    @Transactional public GameDtos.GameResponse resign(UserAccount player, UUID gameId) {
+        Game game = participant(player, gameId, true);
+        if (game.getStatus()!=GameStatus.PLAYING) throw new ApiException(HttpStatus.CONFLICT,"Game is not active");
+        String winner = ownSide(game, player).equals("WHITE") ? "BLACK" : "WHITE";
+        game.resignWithWinner(winner); settleWinner(game); return publish(game);
+    }
+
+    public GameDtos.GameResponse get(UserAccount player, UUID id) { return view(participant(player,id,false)); }
     public List<GameDtos.GameResponse> history(UserAccount player) { return games.findTop20ByWhitePlayerIdOrBlackPlayerIdOrderByUpdatedAtDesc(player.getId(),player.getId()).stream().map(this::view).toList(); }
     public List<GameDtos.GameResponse> waiting() { return games.findTop20ByStatusOrderByCreatedAtAsc(GameStatus.WAITING).stream().map(this::view).toList(); }
-    private Game participant(UserAccount player, UUID id) { Game game=game(id); if(!player.getId().equals(game.getWhitePlayerId())&&!player.getId().equals(game.getBlackPlayerId())) throw new ApiException(HttpStatus.FORBIDDEN,"You are not a match participant"); return game; }
+
+    private boolean endIfKingCaptured(Game game) {
+        if (!ChessBoard.hasKing(mapper, game.getBoard(), 'w')) { game.finishWithWinner("BLACK"); settleWinner(game); return true; }
+        if (!ChessBoard.hasKing(mapper, game.getBoard(), 'b')) { game.finishWithWinner("WHITE"); settleWinner(game); return true; }
+        return false;
+    }
+    private void settleWinner(Game game) {
+        if (game.getType()==GameType.LOCAL) return;
+        UserAccount white = users.findById(game.getWhitePlayerId()).orElseThrow();
+        if (game.getType()==GameType.PVE) { if ("WHITE".equals(game.getWinnerColor())) white.recordWin(); else white.recordLoss(); return; }
+        UserAccount black = users.findById(game.getBlackPlayerId()).orElseThrow();
+        if ("WHITE".equals(game.getWinnerColor())) { white.recordWin(); black.recordLoss(); } else { black.recordWin(); white.recordLoss(); }
+    }
+    private void settleDraw(Game game) {
+        if (game.getType()==GameType.LOCAL) return;
+        users.findById(game.getWhitePlayerId()).orElseThrow().recordDraw();
+        if (game.getType()==GameType.PVP && game.getBlackPlayerId()!=null) users.findById(game.getBlackPlayerId()).orElseThrow().recordDraw();
+    }
+    private Game participant(UserAccount player, UUID id, boolean lock) {
+        Game game = lock ? locked(id) : game(id);
+        if(!player.getId().equals(game.getWhitePlayerId())&&!player.getId().equals(game.getBlackPlayerId())) throw new ApiException(HttpStatus.FORBIDDEN,"You are not a match participant");
+        return game;
+    }
+    private String ownSide(Game game, UserAccount player) { if (game.getType()==GameType.LOCAL) return game.getCurrentTurn(); return player.getId().equals(game.getWhitePlayerId()) ? "WHITE" : "BLACK"; }
     private Game game(UUID id) { return games.findById(id).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,"Game not found")); }
+    private Game locked(UUID id) { return games.findWithLockById(id).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,"Game not found")); }
     private GameDtos.GameResponse publish(Game game) { GameDtos.GameResponse response=view(game); messages.convertAndSend("/topic/games/"+game.getId(),response); return response; }
-    private GameDtos.GameResponse view(Game game) { return new GameDtos.GameResponse(game.getId(),game.getType().name(),game.getStatus().name(),game.getWhitePlayerId(),game.getBlackPlayerId(),game.getCurrentTurn(),ChessBoard.view(mapper,game.getBoard()),game.getWhiteHp(),game.getBlackHp()); }
+    private GameDtos.GameResponse view(Game game) { return new GameDtos.GameResponse(game.getId(), game.getType().name(), game.getStatus().name(), game.getBotDifficulty().name(), game.getWhitePlayerId(), game.getBlackPlayerId(), game.getCurrentTurn(), ChessBoard.view(mapper,game.getBoard()), game.getWhiteHp(), game.getBlackHp(), game.getWinnerColor()); }
 }

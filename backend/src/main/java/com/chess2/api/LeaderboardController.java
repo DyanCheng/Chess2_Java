@@ -16,8 +16,8 @@ public class LeaderboardController {
 
     @GetMapping
     public List<AuthDtos.LeaderboardEntry> top() {
-        return users.findTop20ByOrderByExperienceDesc().stream()
-                .map(user -> new AuthDtos.LeaderboardEntry(user.getUsername(), user.getLevel(), user.getExperience()))
+        return users.findTop20ByOrderByRatingDescExperienceDesc().stream()
+                .map(user -> new AuthDtos.LeaderboardEntry(user.getUsername(), user.getLevel(), user.getExperience(), user.getRating(), user.getWins(), user.getLosses(), user.getDraws()))
                 .toList();
     }
 }

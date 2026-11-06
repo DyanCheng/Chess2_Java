@@ -28,7 +28,8 @@ public class AuthService {
         if (!encoder.matches(request.password(), user.getPassword())) throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
         return response(user, wallet(user));
     }
-    public AuthDtos.PlayerResponse profile(UserAccount user) { Wallet wallet=wallet(user); return new AuthDtos.PlayerResponse(user.getUsername(), user.getEmail(), user.getRole().name(), user.getLevel(), user.getExperience(), wallet.getGold(), wallet.getGems()); }
-    private AuthDtos.AuthResponse response(UserAccount user, Wallet wallet) { return new AuthDtos.AuthResponse(jwt.issue(user.getUsername(), user.getRole().name()), "Bearer", new AuthDtos.PlayerResponse(user.getUsername(), user.getEmail(), user.getRole().name(), user.getLevel(), user.getExperience(), wallet.getGold(), wallet.getGems())); }
+    public AuthDtos.PlayerResponse profile(UserAccount user) { Wallet wallet=wallet(user); return player(user, wallet); }
+    private AuthDtos.AuthResponse response(UserAccount user, Wallet wallet) { return new AuthDtos.AuthResponse(jwt.issue(user.getUsername(), user.getRole().name()), "Bearer", player(user, wallet)); }
+    private AuthDtos.PlayerResponse player(UserAccount user, Wallet wallet) { return new AuthDtos.PlayerResponse(user.getUsername(), user.getEmail(), user.getRole().name(), user.getLevel(), user.getExperience(), user.getRating(), user.getWins(), user.getLosses(), user.getDraws(), wallet.getGold(), wallet.getGems()); }
     private Wallet wallet(UserAccount user) { return wallets.findById(user.getId()).orElseGet(() -> wallets.save(new Wallet(user.getId()))); }
 }

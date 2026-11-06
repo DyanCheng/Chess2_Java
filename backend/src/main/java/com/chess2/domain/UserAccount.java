@@ -19,6 +19,10 @@ public class UserAccount implements UserDetails {
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 16) private Role role = Role.PLAYER;
     @Column(nullable = false) private long experience = 0;
     @Column(nullable = false) private int level = 1;
+    @Column(nullable = false) private int rating = 1000;
+    @Column(nullable = false) private int wins = 0;
+    @Column(nullable = false) private int losses = 0;
+    @Column(nullable = false) private int draws = 0;
     @Column(name = "created_at", nullable = false) private Instant createdAt = Instant.now();
 
     protected UserAccount() { }
@@ -30,7 +34,14 @@ public class UserAccount implements UserDetails {
     public Role getRole() { return role; }
     public long getExperience() { return experience; }
     public int getLevel() { return level; }
+    public int getRating() { return rating; }
+    public int getWins() { return wins; }
+    public int getLosses() { return losses; }
+    public int getDraws() { return draws; }
     public void grantAdmin() { role = Role.ADMIN; }
     public void addExperience(long amount) { experience += amount; level = (int) Math.max(1, experience / 500 + 1); }
+    public void recordWin() { wins++; rating += 24; addExperience(120); }
+    public void recordLoss() { losses++; rating = Math.max(0, rating - 16); addExperience(25); }
+    public void recordDraw() { draws++; rating += 4; addExperience(50); }
     @Override public Collection<? extends GrantedAuthority> getAuthorities() { return List.of(new SimpleGrantedAuthority("ROLE_" + role.name())); }
 }

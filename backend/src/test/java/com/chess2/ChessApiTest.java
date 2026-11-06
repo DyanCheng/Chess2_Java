@@ -42,6 +42,19 @@ class ChessApiTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.currentTurn").value("WHITE"));
     }
 
+    @Test
+    void quickMatchPairsPlayersAndUpdatesRankedResultOnResign() throws Exception {
+        String whiteToken=register(); String blackToken=register();
+        MvcResult waiting=mvc.perform(post("/api/games/quick-match").header("Authorization",bearer(whiteToken)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("WAITING")).andReturn();
+        String gameId=mapper.readTree(waiting.getResponse().getContentAsString()).get("id").asText();
+        mvc.perform(post("/api/games/quick-match").header("Authorization",bearer(blackToken)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(gameId)).andExpect(jsonPath("$.status").value("PLAYING"));
+        mvc.perform(post("/api/games/{id}/resign",gameId).header("Authorization",bearer(blackToken)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("RESIGNED")).andExpect(jsonPath("$.winnerColor").value("WHITE"));
+        mvc.perform(get("/api/leaderboard")).andExpect(status().isOk()).andExpect(jsonPath("$[0].rating").value(1024));
+    }
+
     private String register() throws Exception {
         String user="player"+UUID.randomUUID().toString().replace("-","").substring(0,8);
         MvcResult result=mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(new Registration(user,user+"@example.com","samplePassword123"))))

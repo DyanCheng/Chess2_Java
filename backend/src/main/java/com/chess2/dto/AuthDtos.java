@@ -10,6 +10,6 @@ public final class AuthDtos {
     public record RegisterRequest(@NotBlank @Pattern(regexp = "[A-Za-z0-9_]{3,32}") String username, @NotBlank @Email String email, @NotBlank @Size(min = 8, max = 72) String password) { }
     public record LoginRequest(@NotBlank String username, @NotBlank String password) { }
     public record AuthResponse(String accessToken, String tokenType, PlayerResponse player) { }
-    public record PlayerResponse(String username, String email, String role, int level, long experience, long gold, long gems) { }
-    public record LeaderboardEntry(String username, int level, long experience) { }
+    public record PlayerResponse(String username, String email, String role, int level, long experience, int rating, int wins, int losses, int draws, long gold, long gems) { }
+    public record LeaderboardEntry(String username, int level, long experience, int rating, int wins, int losses, int draws) { }
 }
