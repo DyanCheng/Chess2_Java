@@ -13,6 +13,6 @@ public final class AuthDtos {
     public record PasswordResetRequest(@NotBlank @Email String email) { }
     public record ResetPasswordRequest(@NotBlank @Size(min = 8, max = 72) String token, @NotBlank @Size(min = 8, max = 72) String password) { }
     public record AuthResponse(String accessToken, String tokenType, PlayerResponse player) { }
-    public record PlayerResponse(String username, String email, String role, String accountType, int level, long experience, int rating, int wins, int losses, int draws, long gold, long gems) { }
+    public record PlayerResponse(String username, String email, String role, String accountType, int level, long experience, int rating, int wins, int losses, int draws, long gold, long gems, java.util.UUID id) { }
     public record LeaderboardEntry(String username, int level, long experience, int rating, int wins, int losses, int draws) { }
 }
