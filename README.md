@@ -30,6 +30,18 @@ Backend Java cho Arcane Chess mobile. Dự án thay thế demo dữ liệu trong
 
 ## Chạy cục bộ
 
+### Demo tức thì, không cần Supabase
+
+```powershell
+cd backend
+mvn -Dspring-boot.run.profiles=demo spring-boot:run
+```
+
+Mở `http://localhost:8080`, tạo hai tài khoản để trình diễn quick-match PvP hoặc một tài khoản để chơi PvE.
+Profile `demo` dùng H2 trong bộ nhớ, tự seed thẻ, shop và puzzle; dữ liệu được xóa khi dừng ứng dụng.
+
+### Chạy với Supabase
+
 1. Tạo `backend/.env` hoặc file `.env` ở repository từ `.env.example` và điền `SUPABASE_DB_URL`, `JWT_SECRET`.
 2. Lấy chuỗi JDBC **Session pooler** của Supabase; không dùng Transaction pooler cho Hibernate/JPA.
 3. Chạy `docker compose up --build`.
@@ -57,7 +69,7 @@ Không đặt database password hoặc JWT secret trong GitHub Actions, `.env.ex
 
 ## Supabase migration
 
-Migration nằm tại `backend/src/main/resources/db/migration/V1__create_chess_schema.sql`. Spring Boot sẽ chạy migration ở schema `chess` khi khởi động với quyền database phù hợp. Kiểm tra đúng project Supabase trước khi khởi động Production: schema này độc lập với `public` của app React Native cũ.
+Migration nằm tại `backend/src/main/resources/db/migration/`. Spring Boot sẽ chạy migration ở schema `chess` khi khởi động với quyền database phù hợp. Kiểm tra đúng project Supabase trước khi khởi động Production: schema này độc lập với `public` của app React Native cũ.
 
 ## Lưu ý realtime
 
