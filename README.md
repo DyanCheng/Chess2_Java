@@ -5,7 +5,7 @@
 ## Cấu trúc
 
 ```
-backend/                         # Vercel Root Directory và ứng dụng triển khai
+backend/                         # ứng dụng Java triển khai
   src/main/java/com/chess2/      # API, bảo mật JWT, domain và service
   src/main/resources/
     db/migration/                # Flyway migrations cho schema chess
@@ -80,7 +80,7 @@ mvn verify
 
 ## Vercel
 
-Trong Vercel, đặt **Root Directory = `backend`**. Vercel sẽ dùng `backend/Dockerfile`; không cần `vercel.json` hay Dockerfile ở gốc repository. Cấu hình Environment Variables cho Preview và Production:
+Vercel build từ gốc repository bằng `Dockerfile.vercel`; file này chỉ copy `backend/` vào image Java. `vercel.json` đặt framework là `container` để toàn bộ traffic được route đến Spring Boot. Cấu hình Environment Variables cho Preview và Production:
 
 - `SUPABASE_DB_URL`: JDBC Session pooler có `sslmode=require`.
 - `JWT_SECRET`: secret Base64 tối thiểu 32 byte.
