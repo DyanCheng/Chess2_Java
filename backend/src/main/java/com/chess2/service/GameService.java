@@ -79,6 +79,13 @@ public class GameService {
         game.resignWithWinner(winner); settleWinner(game); return publish(game);
     }
 
+    @Transactional public GameDtos.GameResponse cancelWaiting(UserAccount player, UUID gameId) {
+        Game game = participant(player, gameId, true);
+        if (!player.getId().equals(game.getWhitePlayerId())) throw new ApiException(HttpStatus.FORBIDDEN, "Only the room creator can cancel it");
+        if (game.getStatus() != GameStatus.WAITING) throw new ApiException(HttpStatus.CONFLICT, "Only a waiting game can be cancelled");
+        game.cancelWaiting(); return publish(game);
+    }
+
     public GameDtos.GameResponse get(UserAccount player, UUID id) { return view(participant(player,id,false)); }
     public List<GameDtos.GameResponse> history(UserAccount player) { return games.findTop20ByWhitePlayerIdOrBlackPlayerIdOrderByUpdatedAtDesc(player.getId(),player.getId()).stream().map(this::view).toList(); }
     public List<GameDtos.GameResponse> waiting() { return games.findTop20ByStatusOrderByCreatedAtAsc(GameStatus.WAITING).stream().map(this::view).toList(); }

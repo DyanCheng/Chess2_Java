@@ -34,6 +34,13 @@ class ChessApiTest {
     }
 
     @Test
+    void frontendAssetsArePublicButGameplayRemainsProtected() throws Exception {
+        mvc.perform(get("/app.js")).andExpect(status().isOk());
+        mvc.perform(get("/pixel-chess-v1/pieces/W_King.png")).andExpect(status().isOk());
+        mvc.perform(get("/api/games/history")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void pveGameValidatesMoveAndReturnsAfterBotTurn() throws Exception {
         String token=register(); String gameId=createGame(token,"PVE");
         mvc.perform(post("/api/games/{id}/moves",gameId).header("Authorization",bearer(token)).contentType(MediaType.APPLICATION_JSON).content("{\"from\":\"e2\",\"to\":\"e5\"}"))
@@ -53,6 +60,19 @@ class ChessApiTest {
         mvc.perform(post("/api/games/{id}/resign",gameId).header("Authorization",bearer(blackToken)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("RESIGNED")).andExpect(jsonPath("$.winnerColor").value("WHITE"));
         mvc.perform(get("/api/leaderboard")).andExpect(status().isOk()).andExpect(jsonPath("$[0].rating").value(1024));
+    }
+
+    @Test
+    void puzzleRewardCanOnlyBeClaimedOnce() throws Exception {
+        String token=register();
+        MvcResult puzzle=mvc.perform(get("/api/puzzles").header("Authorization",bearer(token))).andExpect(status().isOk()).andReturn();
+        String puzzleId=mapper.readTree(puzzle.getResponse().getContentAsString()).get(0).get("id").asText();
+        String submission="{\"from\":\"e2\",\"to\":\"e8\"}";
+        mvc.perform(post("/api/puzzles/{id}/submit",puzzleId).header("Authorization",bearer(token)).contentType(MediaType.APPLICATION_JSON).content(submission))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.correct").value(true)).andExpect(jsonPath("$.rewardGranted").value(true));
+        mvc.perform(post("/api/puzzles/{id}/submit",puzzleId).header("Authorization",bearer(token)).contentType(MediaType.APPLICATION_JSON).content(submission))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.correct").value(true)).andExpect(jsonPath("$.rewardGranted").value(false));
+        mvc.perform(get("/api/auth/me").header("Authorization",bearer(token))).andExpect(status().isOk()).andExpect(jsonPath("$.gold").value(575));
     }
 
     private String register() throws Exception {

@@ -24,4 +24,5 @@ public class GameController {
     @PostMapping("/{id}/moves") public GameDtos.GameResponse move(@AuthenticationPrincipal UserAccount user,@PathVariable UUID id,@Valid @RequestBody GameDtos.MoveRequest request) { return games.move(user,id,request); }
     @PostMapping("/{id}/cards") public GameDtos.GameResponse useCard(@AuthenticationPrincipal UserAccount user,@PathVariable UUID id,@Valid @RequestBody GameDtos.UseCardRequest request) { return games.useCard(user,id,request); }
     @PostMapping("/{id}/resign") public GameDtos.GameResponse resign(@AuthenticationPrincipal UserAccount user,@PathVariable UUID id) { return games.resign(user,id); }
+    @PostMapping("/{id}/cancel") public GameDtos.GameResponse cancelWaiting(@AuthenticationPrincipal UserAccount user,@PathVariable UUID id) { return games.cancelWaiting(user,id); }
 }

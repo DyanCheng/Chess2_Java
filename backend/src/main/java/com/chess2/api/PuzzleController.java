@@ -16,6 +16,6 @@ public class PuzzleController {
     private final PuzzleService puzzles;
     public PuzzleController(PuzzleService puzzles) { this.puzzles=puzzles; }
     @GetMapping public List<Puzzle> all() { return puzzles.all(); }
-    @PostMapping("/{id}/submit") public java.util.Map<String,Boolean> submit(@AuthenticationPrincipal UserAccount user,@PathVariable UUID id,@RequestBody SubmitRequest request) { return java.util.Map.of("correct",puzzles.submit(user,id,request.from(),request.to())); }
+    @PostMapping("/{id}/submit") public PuzzleService.PuzzleResult submit(@AuthenticationPrincipal UserAccount user,@PathVariable UUID id,@RequestBody SubmitRequest request) { return puzzles.submit(user,id,request.from(),request.to()); }
     public record SubmitRequest(@NotBlank @Pattern(regexp="[a-h][1-8]") String from,@NotBlank @Pattern(regexp="[a-h][1-8]") String to) { }
 }

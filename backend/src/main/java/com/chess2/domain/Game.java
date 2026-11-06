@@ -30,5 +30,6 @@ public class Game {
     public void finish(GameStatus finalStatus) { status=finalStatus; completedAt=Instant.now(); touch(); }
     public void finishWithWinner(String colour) { winnerColor=colour; finish(GameStatus.FINISHED); }
     public void resignWithWinner(String colour) { winnerColor=colour; finish(GameStatus.RESIGNED); }
+    public void cancelWaiting() { if (status != GameStatus.WAITING) throw new IllegalStateException("Only a waiting game can be cancelled"); finish(GameStatus.ABANDONED); }
     private void touch() { updatedAt=Instant.now(); }
 }
