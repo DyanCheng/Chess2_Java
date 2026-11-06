@@ -1,5 +1,15 @@
 # Chess2 Java
 
+## Frontend và database
+
+Frontend web nằm trong `backend/src/main/resources/static/` và được Spring Boot phục vụ tại `/`;
+không cần chạy frontend server riêng. Giao diện dùng JWT API để đăng ký/đăng nhập, tạo ván PVE/PVP/local,
+dùng HP và thẻ, mua trong shop, giải puzzle và xem leaderboard.
+
+Database sử dụng Supabase PostgreSQL schema `chess`. Migration nằm ở
+`backend/src/main/resources/db/migration/`; cấu hình Flyway đã hỗ trợ project CHESS đã khởi tạo schema
+trước đó, đồng thời vẫn tự chạy migration trên database hoàn toàn mới.
+
 ## Pixel chess assets
 
 Giao diện dùng các sprite trong `backend/src/main/resources/static/pixel-chess-v1/`.
