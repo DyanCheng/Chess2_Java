@@ -14,6 +14,7 @@ public class CatalogService {
     private final FunctionCardRepository cards; private final UserCardRepository userCards; private final ShopItemRepository shop; private final WalletRepository wallets;
     public CatalogService(FunctionCardRepository cards, UserCardRepository userCards, ShopItemRepository shop, WalletRepository wallets) { this.cards=cards; this.userCards=userCards; this.shop=shop; this.wallets=wallets; }
     public List<FunctionCard> cards() { return cards.findAll(); }
+    public FunctionCard card(UUID cardId) { return cards.findById(cardId).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Card not found")); }
     public List<UserCard> inventory(UserAccount user) { return userCards.findByUserId(user.getId()); }
     public List<ShopItem> shop() { return shop.findByActiveTrue(); }
     @Transactional public void purchase(UserAccount user, UUID itemId) {

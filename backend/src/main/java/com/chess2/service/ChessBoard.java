@@ -30,8 +30,13 @@ final class ChessBoard {
     }
 
     static String botMove(ObjectMapper mapper, String json, BotDifficulty difficulty) {
+        return botMove(mapper, json, difficulty, null);
+    }
+
+    static String botMove(ObjectMapper mapper, String json, BotDifficulty difficulty, String protectedSquare) {
         String[][] board = read(mapper, json);
         List<CandidateMove> moves = candidates(board, 'b');
+        if (protectedSquare != null) moves = moves.stream().filter(move -> !protectedSquare.equals(move.to())).toList();
         if (moves.isEmpty()) throw new ApiException(HttpStatus.CONFLICT, "Bot has no available move");
         CandidateMove selected = switch (difficulty) {
             case EASY -> moves.get(ThreadLocalRandom.current().nextInt(moves.size()));
@@ -44,6 +49,17 @@ final class ChessBoard {
     static boolean hasKing(ObjectMapper mapper, String json, char colour) {
         for (String[] row : read(mapper, json)) for (String piece : row) if (("" + colour + "K").equals(piece)) return true;
         return false;
+    }
+
+    static String pieceAt(ObjectMapper mapper, String json, String square) { int[] point = square(square); return read(mapper, json)[point[0]][point[1]]; }
+
+    static String addQueen(ObjectMapper mapper, String json, char colour) {
+        String[][] board = read(mapper, json); List<int[]> empty = new ArrayList<>();
+        int homeRow = colour == 'w' ? 7 : 0;
+        for (int col = 0; col < 8; col++) if (board[homeRow][col] == null) empty.add(new int[] {homeRow, col});
+        if (empty.isEmpty()) for (int row = 0; row < 8; row++) for (int col = 0; col < 8; col++) if (board[row][col] == null) empty.add(new int[] {row, col});
+        if (empty.isEmpty()) throw new ApiException(HttpStatus.CONFLICT, "No empty square is available for the extra queen");
+        int[] target = empty.get(ThreadLocalRandom.current().nextInt(empty.size())); board[target[0]][target[1]] = colour + "Q"; return write(mapper, board);
     }
 
     static List<List<String>> view(ObjectMapper mapper, String json) {

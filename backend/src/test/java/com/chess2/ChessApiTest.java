@@ -95,6 +95,23 @@ class ChessApiTest {
         mvc.perform(get("/api/auth/me").header("Authorization",bearer(token))).andExpect(status().isOk()).andExpect(jsonPath("$.gold").value(575));
     }
 
+    @Test
+    void freezeCardLocksTheChosenOpponentPiece() throws Exception {
+        String token = register();
+        JsonNode cards = mapper.readTree(mvc.perform(get("/api/cards").header("Authorization", bearer(token))).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        String cardId = null;
+        for (JsonNode card : cards) if ("FREEZE".equals(card.get("effectType").asText())) cardId = card.get("id").asText();
+        org.junit.jupiter.api.Assertions.assertNotNull(cardId);
+        JsonNode shop = mapper.readTree(mvc.perform(get("/api/shop")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        String itemId = null;
+        for (JsonNode item : shop) if (cardId.equals(item.get("cardId").asText())) itemId = item.get("id").asText();
+        org.junit.jupiter.api.Assertions.assertNotNull(itemId);
+        mvc.perform(post("/api/shop/{id}/purchase", itemId).header("Authorization", bearer(token))).andExpect(status().isNoContent());
+        String gameId = createGame(token, "PVE");
+        mvc.perform(post("/api/games/{id}/cards", gameId).header("Authorization", bearer(token)).contentType(MediaType.APPLICATION_JSON).content("{\"cardId\":\"" + cardId + "\",\"target\":\"e7\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.frozenSquare").value("e7"));
+    }
+
     private String register() throws Exception {
         String user="player"+UUID.randomUUID().toString().replace("-","").substring(0,8);
         MvcResult result=mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(new Registration(user,user+"@example.com","samplePassword123"))))

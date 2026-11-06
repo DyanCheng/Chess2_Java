@@ -114,6 +114,7 @@ async function joinGame(id, button) {
 }
 async function selectSquare(row, col) {
   const game = state.game; if (!game || game.status !== "PLAYING") return;
+  if (state.pendingCard) { const card = state.pendingCard; state.pendingCard = null; return useCard(card, `${String.fromCharCode(97 + col)}${8 - row}`); }
   const piece = game.board[row][col]; const colour = game.currentTurn === "WHITE" ? "w" : "b";
   if (!state.selectedSquare) { if (!piece || piece[0] !== colour) return; state.selectedSquare = { row, col }; return renderGame(selectSquare, useCard); }
   if (piece?.[0] === colour) { state.selectedSquare = { row, col }; return renderGame(selectSquare, useCard); }
@@ -122,9 +123,10 @@ async function selectSquare(row, col) {
   try { state.game = await api(`/api/games/${game.id}/moves`, { method: "POST", body: JSON.stringify({ from, to }) }); state.lastMove = [from, to]; state.selectedSquare = null; renderGame(selectSquare, useCard); }
   catch (error) { state.selectedSquare = null; renderGame(selectSquare, useCard); toast(error.message, true); }
 }
-async function useCard(cardId) {
+async function useCard(card, targeted = false) {
   if (!state.game) return;
-  try { state.game = await api(`/api/games/${state.game.id}/cards`, { method: "POST", body: JSON.stringify({ cardId, target: "OPPONENT" }) }); toast("Đã kích hoạt thẻ."); await refreshData(); }
+  if (targeted === true) { state.pendingCard = card; state.selectedSquare = null; renderGame(selectSquare, useCard); toast(card.effectType === "FREEZE" ? "Chọn một quân đối thủ để đóng băng." : "Chọn một quân của bạn để bảo vệ."); return; }
+  try { state.game = await api(`/api/games/${state.game.id}/cards`, { method: "POST", body: JSON.stringify({ cardId: card.id, target: typeof targeted === "string" ? targeted : "OPPONENT" }) }); toast("Đã kích hoạt thẻ."); await refreshData(); }
   catch (error) { toast(error.message, true); }
 }
 async function buyCard(id) { try { await api(`/api/shop/${id}/purchase`, { method: "POST" }); toast("Đã thêm thẻ vào kho."); await refreshData(); } catch (error) { toast(error.message, true); } }

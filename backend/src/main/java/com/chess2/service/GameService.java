@@ -51,10 +51,14 @@ public class GameService {
         boolean white = game.getCurrentTurn().equals("WHITE"); UUID expected = white ? game.getWhitePlayerId() : game.getBlackPlayerId();
         if (game.getType()!=GameType.LOCAL && !player.getId().equals(expected)) throw new ApiException(HttpStatus.FORBIDDEN,"It is not your turn");
         if (game.getType()==GameType.PVE && !white) throw new ApiException(HttpStatus.CONFLICT,"Wait for the bot");
-        game.updateBoard(ChessBoard.move(mapper, game.getBoard(), request.from(), request.to(), game.getCurrentTurn()));
+        String movingSide = game.getCurrentTurn(); String opposingSide = movingSide.equals("WHITE") ? "BLACK" : "WHITE";
+        if (game.isFrozen(request.from(), movingSide)) throw new ApiException(HttpStatus.CONFLICT, "Quân cờ này đang bị Freeze trong lượt hiện tại");
+        if (game.isInvulnerable(request.to(), opposingSide)) throw new ApiException(HttpStatus.CONFLICT, "Quân cờ mục tiêu đang bất bại");
+        game.updateBoard(ChessBoard.move(mapper, game.getBoard(), request.from(), request.to(), movingSide));
+        game.advanceEffects(movingSide);
         if (endIfKingCaptured(game)) return publish(game);
         if (game.getType()==GameType.PVE && game.getCurrentTurn().equals("BLACK")) {
-            try { game.updateBoard(ChessBoard.botMove(mapper, game.getBoard(), game.getBotDifficulty())); }
+            try { game.updateBoard(ChessBoard.botMove(mapper, game.getBoard(), game.getBotDifficulty(), game.getInvulnerableSquare())); game.advanceEffects("BLACK"); }
             catch (ApiException ignored) { game.finish(GameStatus.DRAW); settleDraw(game); }
             endIfKingCaptured(game);
         }
@@ -64,11 +68,20 @@ public class GameService {
     @Transactional public GameDtos.GameResponse useCard(UserAccount player, UUID gameId, GameDtos.UseCardRequest request) {
         Game game = participant(player, gameId, true);
         if (game.getStatus()!=GameStatus.PLAYING) throw new ApiException(HttpStatus.CONFLICT,"Game is not active");
-        FunctionCard card = catalog.useCard(player,request.cardId());
+        FunctionCard card = catalog.card(request.cardId());
         String ownSide = ownSide(game, player); String other = ownSide.equals("WHITE") ? "BLACK" : "WHITE";
-        if (card.getEffectType().equals("HEAL")) game.adjustHp(ownSide, Math.max(1,card.getEffectValue()));
-        if (card.getEffectType().equals("DOUBLE_DAMAGE")) game.adjustHp(other, -Math.max(1,card.getEffectValue()));
-        if (game.getStatus()==GameStatus.FINISHED) { game.finishWithWinner(game.getWhiteHp() == 0 ? "BLACK" : "WHITE"); settleWinner(game); }
+        switch (card.getEffectType()) {
+            case "HEAL" -> game.adjustHp(ownSide, Math.max(1,card.getEffectValue()));
+            case "DOUBLE_DAMAGE" -> game.adjustHp(other, -Math.max(1,card.getEffectValue()));
+            case "FREEZE" -> game.freeze(enemyPiece(game, request.target(), other), other, Math.max(1, card.getEffectValue()));
+            case "INVULNERABLE" -> game.protect(ownPiece(game, request.target(), ownSide), ownSide, Math.max(1, card.getEffectValue()));
+            case "EXTRA_QUEEN" -> { int health = ownSide.equals("WHITE") ? game.getWhiteHp() : game.getBlackHp(); game.adjustHp(ownSide, -Math.max(1, (int) Math.ceil(health * 0.8))); if (game.getStatus()!=GameStatus.FINISHED) game.replaceBoard(ChessBoard.addQueen(mapper, game.getBoard(), ownSide.charAt(0))); }
+            case "SURRENDER" -> game.resignWithWinner(other);
+            default -> throw new ApiException(HttpStatus.BAD_REQUEST, "Hiệu ứng thẻ này chưa khả dụng trong bản demo");
+        }
+        catalog.useCard(player,request.cardId());
+        if (game.getStatus()==GameStatus.FINISHED) { if (game.getWinnerColor()==null) game.finishWithWinner(game.getWhiteHp() == 0 ? "BLACK" : "WHITE"); settleWinner(game); }
+        if (game.getStatus()==GameStatus.RESIGNED) settleWinner(game);
         return publish(game);
     }
 
@@ -116,5 +129,8 @@ public class GameService {
     private Game game(UUID id) { return games.findById(id).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,"Game not found")); }
     private Game locked(UUID id) { return games.findWithLockById(id).orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,"Game not found")); }
     private GameDtos.GameResponse publish(Game game) { GameDtos.GameResponse response=view(game); messages.convertAndSend("/topic/games/"+game.getId(),response); return response; }
-    private GameDtos.GameResponse view(Game game) { return new GameDtos.GameResponse(game.getId(), game.getType().name(), game.getStatus().name(), game.getBotDifficulty().name(), game.getWhitePlayerId(), game.getBlackPlayerId(), game.getCurrentTurn(), ChessBoard.view(mapper,game.getBoard()), game.getWhiteHp(), game.getBlackHp(), game.getWinnerColor()); }
+    private String enemyPiece(Game game, String square, String side) { return targetPiece(game, square, side, "Hãy chọn quân đối phương trên bàn cờ"); }
+    private String ownPiece(Game game, String square, String side) { return targetPiece(game, square, side, "Hãy chọn quân của bạn trên bàn cờ"); }
+    private String targetPiece(Game game, String square, String side, String message) { if (!square.matches("[a-h][1-8]")) throw new ApiException(HttpStatus.BAD_REQUEST, message); String piece = ChessBoard.pieceAt(mapper, game.getBoard(), square); if (piece == null || piece.charAt(0) != Character.toLowerCase(side.charAt(0))) throw new ApiException(HttpStatus.BAD_REQUEST, message); return square; }
+    private GameDtos.GameResponse view(Game game) { return new GameDtos.GameResponse(game.getId(), game.getType().name(), game.getStatus().name(), game.getBotDifficulty().name(), game.getWhitePlayerId(), game.getBlackPlayerId(), game.getCurrentTurn(), ChessBoard.view(mapper,game.getBoard()), game.getWhiteHp(), game.getBlackHp(), game.getWinnerColor(), game.getFrozenSquare(), game.getInvulnerableSquare()); }
 }
