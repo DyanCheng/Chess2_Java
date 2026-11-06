@@ -1,10 +1,12 @@
 import { api, setUnauthorizedHandler } from "./api.js";
 import { clearSession, restoreSession, saveSession, stableGuestKey, state } from "./state.js";
-import { renderGame, renderInventory, renderLeaderboard, renderPlayer, renderPuzzles, renderShop, renderWaiting, showRoute, toast } from "./render.js";
+import { attachBoardDrag, renderGame, renderInventory, renderLeaderboard, renderPlayer, renderPuzzles, renderShop, renderWaiting, showRoute, toast } from "./render.js";
 
 const $ = (id) => document.getElementById(id);
 const routes = new Set(["home", "play", "collection", "puzzles", "leaderboard"]);
 let pollingTimer = null;
+
+function renderGameView() { renderGame(selectSquare, useCard); attachBoardDrag(movePiece); }
 
 function routeName() { const value = location.hash.replace("#/", ""); return routes.has(value) ? value : "home"; }
 function go(route) { location.hash = `#/${route}`; }
@@ -41,7 +43,7 @@ function showAuth(message = "") {
   clearInterval(pollingTimer); clearSession(); setScreen(true); $("auth-message").textContent = message;
 }
 function renderEverything() {
-  renderPlayer(); renderInventory(); renderShop(buyCard); renderPuzzles(submitPuzzle); renderLeaderboard(); renderWaiting(joinGame); renderGame(selectSquare, useCard);
+  renderPlayer(); renderInventory(); renderShop(buyCard); renderPuzzles(submitPuzzle); renderLeaderboard(); renderWaiting(joinGame); renderGameView();
 }
 async function refreshData() {
   const [player, cards, inventory, shop, puzzles, leaderboard, waitingGames] = await Promise.all([
@@ -101,7 +103,7 @@ async function confirmPasswordReset(event) {
 async function createGame(type, button) {
   await withAction(button, "Đang tạo ván…", async () => {
     state.game = await api("/api/games", { method: "POST", body: JSON.stringify({ type, difficulty: type === "PVE" ? $("pve-difficulty").value : null }) });
-    state.selectedSquare = null; state.lastMove = []; renderGame(selectSquare, useCard); go("play"); await refreshData();
+    state.selectedSquare = null; state.lastMove = []; renderGameView(); go("play"); await refreshData();
   });
 }
 async function quickMatch(button) {
@@ -116,16 +118,20 @@ async function selectSquare(row, col) {
   const game = state.game; if (!game || game.status !== "PLAYING") return;
   if (state.pendingCard) { const card = state.pendingCard; state.pendingCard = null; return useCard(card, `${String.fromCharCode(97 + col)}${8 - row}`); }
   const piece = game.board[row][col]; const colour = game.currentTurn === "WHITE" ? "w" : "b";
-  if (!state.selectedSquare) { if (!piece || piece[0] !== colour) return; state.selectedSquare = { row, col }; return renderGame(selectSquare, useCard); }
-  if (piece?.[0] === colour) { state.selectedSquare = { row, col }; return renderGame(selectSquare, useCard); }
+  if (!state.selectedSquare) { if (!piece || piece[0] !== colour) return; state.selectedSquare = { row, col }; return renderGameView(); }
+  if (piece?.[0] === colour) { state.selectedSquare = { row, col }; return renderGameView(); }
   const from = `${String.fromCharCode(97 + state.selectedSquare.col)}${8 - state.selectedSquare.row}`;
   const to = `${String.fromCharCode(97 + col)}${8 - row}`;
-  try { state.game = await api(`/api/games/${game.id}/moves`, { method: "POST", body: JSON.stringify({ from, to }) }); state.lastMove = [from, to]; state.selectedSquare = null; renderGame(selectSquare, useCard); }
-  catch (error) { state.selectedSquare = null; renderGame(selectSquare, useCard); toast(error.message, true); }
+  return movePiece(from, to);
+}
+async function movePiece(from, to) {
+  const game = state.game; if (!game || from === to) return;
+  try { state.game = await api(`/api/games/${game.id}/moves`, { method: "POST", body: JSON.stringify({ from, to }) }); state.lastMove = [from, to]; state.selectedSquare = null; renderGameView(); }
+  catch (error) { state.selectedSquare = null; renderGameView(); toast(error.message, true); }
 }
 async function useCard(card, targeted = false) {
   if (!state.game) return;
-  if (targeted === true) { state.pendingCard = card; state.selectedSquare = null; renderGame(selectSquare, useCard); toast(card.effectType === "FREEZE" ? "Chọn một quân đối thủ để đóng băng." : "Chọn một quân của bạn để bảo vệ."); return; }
+  if (targeted === true) { state.pendingCard = card; state.selectedSquare = null; renderGameView(); toast(card.effectType === "FREEZE" ? "Chọn một quân đối thủ để đóng băng." : "Chọn một quân của bạn để bảo vệ."); return; }
   try { state.game = await api(`/api/games/${state.game.id}/cards`, { method: "POST", body: JSON.stringify({ cardId: card.id, target: typeof targeted === "string" ? targeted : "OPPONENT" }) }); toast("Đã kích hoạt thẻ."); await refreshData(); }
   catch (error) { toast(error.message, true); }
 }
@@ -133,8 +139,8 @@ async function buyCard(id) { try { await api(`/api/shop/${id}/purchase`, { metho
 async function submitPuzzle(id, from, to) { try { const result = await api(`/api/puzzles/${id}/submit`, { method: "POST", body: JSON.stringify({ from, to }) }); toast(result.correct ? result.rewardGranted ? "Chính xác! Gold đã được cộng." : "Bạn đã giải puzzle này rồi." : "Chưa đúng, thử một nước khác.", !result.correct); if (result.correct) await refreshData(); } catch (error) { toast(error.message, true); } }
 async function resign() { if (!state.game) return; try { state.game = await api(`/api/games/${state.game.id}/resign`, { method: "POST" }); await refreshData(); } catch (error) { toast(error.message, true); } }
 async function leave() { try { if (state.game?.status === "WAITING") await api(`/api/games/${state.game.id}/cancel`, { method: "POST" }); state.game = null; state.selectedSquare = null; state.lastMove = []; go("home"); await refreshData(); } catch (error) { toast(error.message, true); } }
-function renderRoute() { showRoute(routeName()); if (routeName() === "play") renderGame(selectSquare, useCard); }
-async function pollGame() { const game = state.game; if (document.hidden || !game || game.type !== "PVP" || !["WAITING", "PLAYING"].includes(game.status)) return; try { state.game = await api(`/api/games/${game.id}`); renderGame(selectSquare, useCard); } catch { /* next poll can recover */ } }
+function renderRoute() { showRoute(routeName()); if (routeName() === "play") renderGameView(); }
+async function pollGame() { const game = state.game; if (document.hidden || !game || game.type !== "PVP" || !["WAITING", "PLAYING"].includes(game.status)) return; try { state.game = await api(`/api/games/${game.id}`); renderGameView(); } catch { /* next poll can recover */ } }
 function bind() {
   document.querySelectorAll("[data-auth-mode]").forEach((button) => button.addEventListener("click", () => setAuthMode(button.dataset.authMode)));
   $("auth-form").addEventListener("submit", authenticate); $("guest-login").addEventListener("click", guestLogin);
@@ -147,7 +153,7 @@ function bind() {
   $("resign-game").addEventListener("click", resign); $("leave-game").addEventListener("click", leave); addEventListener("hashchange", renderRoute);
 }
 async function init() {
-  bind(); setAuthMode("login"); renderGame(selectSquare, useCard);
+  bind(); setAuthMode("login"); renderGameView();
   setUnauthorizedHandler(() => showAuth("Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại."));
   if (new URLSearchParams(location.search).has("reset")) { showForgot(); showNewPassword(); return; }
   if (!restoreSession()) return;
@@ -155,3 +161,4 @@ async function init() {
   catch (error) { if (error.status !== 401) showAuth(error.message); }
 }
 init();
+

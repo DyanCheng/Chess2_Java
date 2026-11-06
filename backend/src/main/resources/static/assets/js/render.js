@@ -15,3 +15,50 @@ function input(name, placeholder) { const el = document.createElement("input"); 
 export function renderLeaderboard() { const root = $("leaderboard"); root.replaceChildren(); if (!state.leaderboard.length) { root.textContent = "Chưa có kỳ thủ."; return; } state.leaderboard.forEach((player, index) => { const row = node("div", "leader-row"); const info = node("div", "leader-player"); info.append(node("strong", "", player.username), node("small", "", `${player.wins} thắng · ${player.losses} thua · ${player.draws} hòa`)); row.append(node("span", "rank", `#${index + 1}`), info, node("span", "score", `${player.rating} ELO`)); root.append(row); }); }
 export function renderWaiting(onJoin) { const root = $("waiting-games"); root.replaceChildren(); if (!state.waitingGames.length) { root.textContent = "Chưa có phòng đang chờ."; return; } state.waitingGames.forEach((game) => { const row = node("div", "waiting-row"); const text = node("div"); text.append(node("strong", "", "Phòng PvP"), node("small", "", "Chờ quân Đen tham gia")); const join = node("button", "button secondary compact", "Tham gia"); join.addEventListener("click", () => onJoin(game.id)); row.append(text, join); root.append(row); }); }
 
+// Pointer Events keep drag responsive without relying on the browser's native image drag.
+export function attachBoardDrag(onMove) {
+  const board = $("board");
+  if (!board || board.dataset.dragReady) return;
+  board.dataset.dragReady = "true";
+  let drag = null;
+  const clearTarget = () => board.querySelectorAll(".is-drop-target").forEach((square) => square.classList.remove("is-drop-target"));
+  const squareAt = (x, y) => document.elementFromPoint(x, y)?.closest?.(".square") || null;
+  const end = (event, cancelled = false) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    const current = drag; drag = null; board.classList.remove("is-dragging"); clearTarget(); current.origin.classList.remove("is-drag-origin");
+    try { board.releasePointerCapture(event.pointerId); } catch { /* pointer may already be released */ }
+    const target = !cancelled && current.dragging ? squareAt(event.clientX, event.clientY) : null;
+    const destination = target?.dataset.square;
+    if (current.ghost) {
+      if (destination && destination !== current.from) {
+        const rect = target.getBoundingClientRect(); current.ghost.style.left = `${rect.left + rect.width / 2}px`; current.ghost.style.top = `${rect.top + rect.height / 2}px`;
+        current.ghost.classList.add("is-dropping"); setTimeout(() => current.ghost.remove(), 150);
+      } else current.ghost.remove();
+    }
+    if (!destination || destination === current.from) return;
+    board.dataset.ignoreClick = "true"; target.classList.add("is-drop-success"); setTimeout(() => target.classList.remove("is-drop-success"), 280);
+    onMove(current.from, destination);
+  };
+  board.addEventListener("click", (event) => { if (!board.dataset.ignoreClick) return; delete board.dataset.ignoreClick; event.preventDefault(); event.stopImmediatePropagation(); }, true);
+  board.addEventListener("pointermove", (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    if (!drag.dragging && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) < 7) return;
+    if (!drag.dragging) {
+      drag.dragging = true; board.classList.add("is-dragging"); drag.origin.classList.add("is-drag-origin");
+      drag.ghost = node("span", `piece chess-drag-ghost piece-${drag.piece[0] === "w" ? "white" : "black"}`, pieces[drag.piece]);
+      drag.ghost.setAttribute("aria-hidden", "true"); document.body.append(drag.ghost);
+    }
+    drag.ghost.style.left = `${event.clientX}px`; drag.ghost.style.top = `${event.clientY}px`; clearTarget();
+    const target = squareAt(event.clientX, event.clientY); if (target && target.dataset.square !== drag.from) target.classList.add("is-drop-target");
+  });
+  board.addEventListener("pointerup", (event) => end(event)); board.addEventListener("pointercancel", (event) => end(event, true));
+  board.addEventListener("pointerdown", (event) => {
+    const square = event.target.closest?.(".square"); if (!square) return;
+    const piece = state.game?.board?.[8 - Number(square.dataset.square[1])]?.[square.dataset.square.charCodeAt(0) - 97];
+    const side = state.game?.currentTurn === "WHITE" ? "w" : "b";
+    if (event.button !== 0 || !piece || piece[0] !== side || state.pendingCard || state.game?.status !== "PLAYING") return;
+    drag = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, from: square.dataset.square, piece, origin: square, dragging: false, ghost: null };
+    board.setPointerCapture(event.pointerId);
+  });
+}
+
