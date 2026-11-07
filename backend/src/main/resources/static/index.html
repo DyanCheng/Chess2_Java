@@ -9,6 +9,7 @@
   <title>Chess2 · Java Edition</title>
   <link rel="stylesheet" href="/assets/css/app.css">
   <link rel="stylesheet" href="/assets/css/arcade.css">
+  <link rel="stylesheet" href="/assets/css/club.css">
 </head>
 <body>
   <header class="site-header">
@@ -21,7 +22,7 @@
   <main class="app-shell">
     <section id="auth-view" class="auth-screen">
       <div class="auth-intro"><p class="kicker">CỜ VUA · THẺ CHIẾN THUẬT · JAVA</p><h1>Mỗi nước đi<br><em>là một nước cờ.</em></h1><p>Trải nghiệm cờ vua pixel rõ ràng, đấu Bot hoặc PvP, thu thập thẻ chức năng và chinh phục bảng xếp hạng.</p><div class="feature-list"><span>♜ Bàn cờ chuẩn 8×8</span><span>✦ Tài khoản riêng tư</span><span>⚔ PvE & PvP</span></div></div>
-      <form id="auth-form" class="auth-card" novalidate>
+      <form id="auth-form" class="auth-card" method="post">
         <div class="auth-tabs" role="tablist"><button class="auth-tab active" type="button" data-auth-mode="login">Đăng nhập</button><button class="auth-tab" type="button" data-auth-mode="register">Tạo tài khoản</button></div>
         <div><p class="kicker" id="auth-eyebrow">CHÀO MỪNG TRỞ LẠI</p><h2 id="auth-title">Vào phòng cờ</h2></div>
         <label class="field"><span>Tên người chơi</span><input id="username" name="username" autocomplete="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9_]+" required></label>
@@ -53,4 +54,3 @@
   <script type="module" src="/assets/js/app.js"></script>
 </body>
 </html>
-

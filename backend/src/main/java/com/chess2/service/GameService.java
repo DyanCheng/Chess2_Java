@@ -54,10 +54,11 @@ public class GameService {
         if (game.isFrozen(request.from(), movingSide)) throw new ApiException(HttpStatus.CONFLICT, "Quân cờ này đang bị Freeze trong lượt hiện tại");
         if (game.isInvulnerable(request.to(), opposingSide)) throw new ApiException(HttpStatus.CONFLICT, "Quân cờ mục tiêu đang bất bại");
         game.updateBoard(ChessBoard.move(mapper, game.getBoard(), request.from(), request.to(), movingSide));
+        game.moveEffects(request.from(), request.to(), movingSide);
         game.advanceEffects(movingSide);
         if (endIfKingCaptured(game)) return publish(game);
         if (game.getType()==GameType.PVE && game.getCurrentTurn().equals("BLACK")) {
-            try { game.updateBoard(ChessBoard.botMove(mapper, game.getBoard(), game.getBotDifficulty(), game.getInvulnerableSquare())); game.advanceEffects("BLACK"); }
+            try { game.updateBoard(ChessBoard.botMove(mapper, game.getBoard(), game.getBotDifficulty(), game.getInvulnerableSquare(), game.getFrozenSquare())); game.advanceEffects("BLACK"); }
             catch (ApiException ignored) { game.finish(GameStatus.DRAW); settleDraw(game); }
             endIfKingCaptured(game);
         }
@@ -69,6 +70,7 @@ public class GameService {
         if (game.getStatus()!=GameStatus.PLAYING) throw new ApiException(HttpStatus.CONFLICT,"Game is not active");
         FunctionCard card = catalog.card(request.cardId());
         String ownSide = ownSide(game, player); String other = ownSide.equals("WHITE") ? "BLACK" : "WHITE";
+        if (!ownSide.equals(game.getCurrentTurn())) throw new ApiException(HttpStatus.FORBIDDEN, "Chỉ được dùng thẻ trong lượt của bạn");
         switch (card.getEffectType()) {
             case "HEAL" -> game.adjustHp(ownSide, Math.max(1,card.getEffectValue()));
             case "DOUBLE_DAMAGE" -> game.adjustHp(other, -Math.max(1,card.getEffectValue()));

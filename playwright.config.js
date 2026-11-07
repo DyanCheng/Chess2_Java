@@ -1,7 +1,8 @@
-const { defineConfig, devices } = require("@playwright/test");
-const localChromium = process.platform === "win32"
-  ? "C:\\Users\\duyan\\AppData\\Local\\ms-playwright\\chromium-1200\\chrome-win64\\chrome.exe"
-  : undefined;
+const { defineConfig, devices, chromium } = require("@playwright/test");
+const { existsSync } = require("node:fs");
+const installedChromium = chromium.executablePath();
+const localChromium = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ||
+  (process.platform === "win32" && existsSync(installedChromium) ? installedChromium : undefined);
 
 module.exports = defineConfig({
   testDir: "./e2e",
@@ -34,4 +35,3 @@ module.exports = defineConfig({
     }
   }
 });
-

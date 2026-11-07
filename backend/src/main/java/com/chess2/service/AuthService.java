@@ -45,6 +45,6 @@ public class AuthService {
     }
     public AuthDtos.PlayerResponse profile(UserAccount user) { Wallet wallet=wallet(user); return player(user, wallet); }
     private AuthDtos.AuthResponse response(UserAccount user, Wallet wallet) { return new AuthDtos.AuthResponse(jwt.issue(user.getId().toString(), user.getRole().name()), "Bearer", player(user, wallet)); }
-    private AuthDtos.PlayerResponse player(UserAccount user, Wallet wallet) { return new AuthDtos.PlayerResponse(user.getUsername(), user.getEmail(), user.getRole().name(), user.getAccountType().name(), user.getLevel(), user.getExperience(), user.getRating(), user.getWins(), user.getLosses(), user.getDraws(), wallet.getGold(), wallet.getGems()); }
+    private AuthDtos.PlayerResponse player(UserAccount user, Wallet wallet) { return new AuthDtos.PlayerResponse(user.getUsername(), user.getEmail(), user.getRole().name(), user.getAccountType().name(), user.getLevel(), user.getExperience(), user.getRating(), user.getWins(), user.getLosses(), user.getDraws(), wallet.getGold(), wallet.getGems(), user.getId()); }
     private Wallet wallet(UserAccount user) { return wallets.findById(user.getId()).orElseGet(() -> wallets.save(new Wallet(user.getId()))); }
 }

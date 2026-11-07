@@ -34,6 +34,10 @@ public class Game {
     public void join(UUID userId) { if (blackPlayerId != null) throw new IllegalStateException("Game is full"); blackPlayerId=userId; status=GameStatus.PLAYING; touch(); }
     public void updateBoard(String board) { this.board=board; currentTurn = currentTurn.equals("WHITE") ? "BLACK" : "WHITE"; touch(); }
     public void replaceBoard(String board) { this.board=board; touch(); }
+    public void moveEffects(String from, String to, String side) {
+        if (from.equals(invulnerableSquare) && side.equals(invulnerableSide)) invulnerableSquare = to;
+        if (to.equals(frozenSquare) && !side.equals(frozenSide)) { frozenSquare = null; frozenSide = null; frozenTurns = 0; }
+    }
     public void freeze(String square, String side, int turns) { frozenSquare=square; frozenSide=side; frozenTurns=turns; touch(); }
     public void protect(String square, String side, int turns) { invulnerableSquare=square; invulnerableSide=side; invulnerableTurns=turns; touch(); }
     public boolean isFrozen(String square, String side) { return frozenTurns > 0 && square.equals(frozenSquare) && side.equals(frozenSide); }

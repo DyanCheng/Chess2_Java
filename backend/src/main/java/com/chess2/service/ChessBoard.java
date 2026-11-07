@@ -34,14 +34,19 @@ final class ChessBoard {
     }
 
     static String botMove(ObjectMapper mapper, String json, BotDifficulty difficulty, String protectedSquare) {
+        return botMove(mapper, json, difficulty, protectedSquare, null);
+    }
+
+    static String botMove(ObjectMapper mapper, String json, BotDifficulty difficulty, String protectedSquare, String frozenSquare) {
         String[][] board = read(mapper, json);
         List<CandidateMove> moves = candidates(board, 'b');
         if (protectedSquare != null) moves = moves.stream().filter(move -> !protectedSquare.equals(move.to())).toList();
+        if (frozenSquare != null) moves = moves.stream().filter(move -> !frozenSquare.equals(move.from())).toList();
         if (moves.isEmpty()) throw new ApiException(HttpStatus.CONFLICT, "Bot has no available move");
         CandidateMove selected = switch (difficulty) {
             case EASY -> moves.get(ThreadLocalRandom.current().nextInt(moves.size()));
             case MEDIUM -> chooseMedium(moves);
-            case HARD -> moves.stream().max(Comparator.comparingInt(CandidateMove::score)).orElseThrow();
+            case HARD -> moves.stream().max(Comparator.comparingInt(candidate -> lookAhead(board, candidate))).orElseThrow();
         };
         return move(mapper, json, selected.from(), selected.to(), "BLACK");
     }
@@ -71,6 +76,34 @@ final class ChessBoard {
         List<CandidateMove> captures = moves.stream().filter(move -> move.captureValue() > 0).toList();
         List<CandidateMove> pool = captures.isEmpty() ? moves : captures;
         return pool.get(ThreadLocalRandom.current().nextInt(pool.size()));
+    }
+
+    // Two-ply arcade search: consider the opponent's strongest reply, including king capture.
+    private static int lookAhead(String[][] board, CandidateMove candidate) {
+        if (candidate.captureValue() == 100) return 1_000_000;
+        String[][] after = apply(board, candidate);
+        int worst = evaluate(after);
+        List<CandidateMove> replies = candidates(after, 'w');
+        if (!replies.isEmpty()) worst = replies.stream().mapToInt(reply -> evaluate(apply(after, reply))).min().orElse(worst);
+        return worst * 100 + candidate.score() % 100;
+    }
+
+    private static String[][] apply(String[][] board, CandidateMove move) {
+        String[][] copy = Arrays.stream(board).map(String[]::clone).toArray(String[][]::new);
+        int[] from = square(move.from()), to = square(move.to());
+        String piece = copy[from[0]][from[1]];
+        copy[to[0]][to[1]] = piece.charAt(1) == 'P' && (to[0] == 0 || to[0] == 7) ? piece.charAt(0) + "Q" : piece;
+        copy[from[0]][from[1]] = null;
+        return copy;
+    }
+
+    private static int evaluate(String[][] board) {
+        int score = 0;
+        for (String[] row : board) for (String piece : row) if (piece != null) {
+            int weight = piece.charAt(1) == 'K' ? 10000 : value(piece.charAt(1));
+            score += piece.charAt(0) == 'b' ? weight : -weight;
+        }
+        return score;
     }
 
     private static List<CandidateMove> candidates(String[][] board, char colour) {
