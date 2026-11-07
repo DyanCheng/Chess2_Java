@@ -21,6 +21,9 @@ spring:
         jdbc:
           time_zone: UTC
   flyway:
+    # Flyway needs session semantics for migration locks; do not share the runtime pool.
+    url: ${SUPABASE_MIGRATION_DB_URL:${SUPABASE_DB_URL}}
+    connect-retries: 3
     baseline-on-migrate: true
     baseline-version: 1
     create-schemas: true
@@ -34,6 +37,8 @@ server:
   port: ${PORT:8080}
 
 app:
+  database:
+    transaction-pooling: ${SUPABASE_TRANSACTION_POOLING:false}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:8081,http://localhost:19006}
   security:
