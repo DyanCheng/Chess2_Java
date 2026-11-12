@@ -1,6 +1,6 @@
 # Chess2 Java
 
-Ứng dụng Chess2 viết lại bằng Java 21 và Spring Boot: cờ PvE/PvP/local, HP, thẻ kỹ năng, shop, tiền tệ, puzzle và leaderboard. Frontend được Spring Boot phục vụ trực tiếp, nên chỉ có một ứng dụng để triển khai.
+Ứng dụng Chess2 viết lại bằng Java 25 và Spring Boot: cờ PvE/PvP/local, HP, thẻ kỹ năng, shop, tiền tệ, puzzle và leaderboard. Frontend được Spring Boot phục vụ trực tiếp, nên chỉ có một ứng dụng để triển khai.
 
 ## Cấu trúc
 
@@ -52,12 +52,18 @@ Backend Java cho Arcane Chess mobile. Dự án thay thế demo dữ liệu trong
 
 ### Demo tức thì, không cần Supabase
 
-Yêu cầu JDK 21 (cùng phiên bản với CI/CD và Docker image).
+Yêu cầu JDK 25 (cùng phiên bản với CI/CD và Docker image).
 
 ```powershell
 cd backend
 mvn -Dspring-boot.run.profiles=demo spring-boot:run
 ```
+
+$env:ADMIN_USERNAME="admin_demo"
+$env:ADMIN_EMAIL="admin-demo@chess2.local"
+$env:ADMIN_PASSWORD="Chess2DemoAdmin!2026"
+
+mvn -f .\backend\pom.xml "-Dspring-boot.run.profiles=demo" "-Dspring-boot.run.arguments=--server.port=8088" spring-boot:run
 
 Mở `http://localhost:8080`, tạo hai tài khoản để trình diễn quick-match PvP hoặc một tài khoản để chơi PvE.
 Profile `demo` dùng H2 trong bộ nhớ, tự seed thẻ, shop và puzzle; dữ liệu được xóa khi dừng ứng dụng.
@@ -84,6 +90,7 @@ Vercel build từ gốc repository bằng `Dockerfile.vercel`; file này chỉ c
 
 - `SUPABASE_DB_URL`: JDBC Session pooler có `sslmode=require`.
 - `JWT_SECRET`: secret Base64 tối thiểu 32 byte.
+- `ADMIN_USERNAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`: tài khoản quản trị được tạo hoặc nâng quyền khi khởi động. Mật khẩu phải có ít nhất 12 ký tự; không commit giá trị thật vào Git.
 - `CORS_ALLOWED_ORIGINS`: URL Vercel của mobile-web/demo, phân tách bằng dấu phẩy.
 - `DB_POOL_SIZE`: mặc định `4`.
 - `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD`, `MAIL_FROM`: SMTP cho email quên mật khẩu.

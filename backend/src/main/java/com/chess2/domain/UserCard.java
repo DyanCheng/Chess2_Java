@@ -12,7 +12,7 @@ public class UserCard {
     @Column(nullable = false) private int quantity;
     protected UserCard() { }
     public UserCard(UUID userId, UUID cardId, int quantity) { this.userId=userId; this.cardId=cardId; this.quantity=quantity; }
-    public UUID getCardId() { return cardId; } public int getQuantity() { return quantity; }
+    public UUID getUserId() { return userId; } public UUID getCardId() { return cardId; } public int getQuantity() { return quantity; }
     public void add(int amount) { quantity += amount; }
     public void use() { if (quantity < 1) throw new IllegalStateException("Card is not owned"); quantity--; }
 }

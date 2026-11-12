@@ -5,3 +5,7 @@
 **/.env.*
 !.env.example
 .vercel/
+node_modules/
+test-results/
+playwright-report/
+playwright-artifacts/

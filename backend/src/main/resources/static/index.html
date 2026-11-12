@@ -3,11 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101827">
+  <meta name="theme-color" content="#14251f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23101827'/%3E%3Cpath fill='%23d8ff5e' d='M19 52h27v-5H34v-5h9V27c0-8-5-14-12-14-6 0-10 3-12 7l5 3c1-3 4-5 7-5 4 0 6 3 6 8v16h-7v5H19z'/%3E%3C/svg%3E">
   <meta name="description" content="Chess2 – cờ vua chiến thuật với thẻ kỹ năng, puzzle và xếp hạng.">
-  <title>Chess2 · Java Edition</title>
+  <title>CHESS² · Arcane Chess Club</title>
   <link rel="stylesheet" href="/assets/css/app.css">
   <link rel="stylesheet" href="/assets/css/arcade.css">
+  <link rel="stylesheet" href="/assets/css/club.css">
 </head>
 <body>
   <header class="site-header">
@@ -20,7 +22,7 @@
   <main class="app-shell">
     <section id="auth-view" class="auth-screen">
       <div class="auth-intro"><p class="kicker">CỜ VUA · THẺ CHIẾN THUẬT · JAVA</p><h1>Mỗi nước đi<br><em>là một nước cờ.</em></h1><p>Trải nghiệm cờ vua pixel rõ ràng, đấu Bot hoặc PvP, thu thập thẻ chức năng và chinh phục bảng xếp hạng.</p><div class="feature-list"><span>♜ Bàn cờ chuẩn 8×8</span><span>✦ Tài khoản riêng tư</span><span>⚔ PvE & PvP</span></div></div>
-      <form id="auth-form" class="auth-card" novalidate>
+      <form id="auth-form" class="auth-card" method="post">
         <div class="auth-tabs" role="tablist"><button class="auth-tab active" type="button" data-auth-mode="login">Đăng nhập</button><button class="auth-tab" type="button" data-auth-mode="register">Tạo tài khoản</button></div>
         <div><p class="kicker" id="auth-eyebrow">CHÀO MỪNG TRỞ LẠI</p><h2 id="auth-title">Vào phòng cờ</h2></div>
         <label class="field"><span>Tên người chơi</span><input id="username" name="username" autocomplete="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9_]+" required></label>
@@ -32,11 +34,11 @@
       <form id="new-password-form" class="auth-card" hidden novalidate><p class="kicker">MẬT KHẨU MỚI</p><h2>Chọn mật khẩu mới</h2><p class="muted">Liên kết có hiệu lực trong 15 phút.</p><label class="field"><span>Mật khẩu mới</span><input id="new-password" type="password" autocomplete="new-password" minlength="8" maxlength="72" required></label><button id="new-password-submit" class="button primary" type="submit">Lưu mật khẩu mới</button><p id="new-password-message" class="form-message" role="alert" aria-live="polite"></p></form>
     </section>
     <section id="app-view" hidden>
-      <nav class="main-nav" aria-label="Điều hướng chính"><a href="#/home" data-route="home">Tổng quan</a><a href="#/play" data-route="play">Chơi cờ</a><a href="#/collection" data-route="collection">Bộ sưu tập</a><a href="#/puzzles" data-route="puzzles">Puzzle</a><a href="#/leaderboard" data-route="leaderboard">Xếp hạng</a></nav>
+      <nav class="main-nav" aria-label="Điều hướng chính"><a href="#/home" data-route="home">Tổng quan</a><a href="#/play" data-route="play">Chơi cờ</a><a href="#/collection" data-route="collection">Bộ sưu tập</a><a href="#/puzzles" data-route="puzzles">Puzzle</a><a href="#/leaderboard" data-route="leaderboard">Xếp hạng</a><a id="admin-nav" href="#/admin" data-route="admin" hidden>Quản trị</a></nav>
       <section class="page" data-page="home">
         <div class="page-heading home-heading"><div><p class="kicker">PHÒNG ĐIỀU KHIỂN</p><h1>Chào, <span id="player-name">Kỳ thủ</span></h1><p id="player-subtitle">Sẵn sàng cho một ván đấu mới?</p></div><div class="rank-card"><span>RATING</span><strong id="player-rating">1000</strong><small id="player-record">0 thắng · 0 thua · 0 hòa</small></div></div>
         <div class="quick-stats"><article><span>Cấp độ</span><strong id="player-level">1</strong></article><article><span>Kinh nghiệm</span><strong id="player-xp">0</strong></article><article><span>Gold</span><strong id="dashboard-gold">0</strong></article></div>
-        <section class="panel"><div class="section-title"><div><p class="kicker">BẮT ĐẦU VÁN MỚI</p><h2>Chọn đối thủ</h2></div></div><div class="mode-grid"><article class="mode-card"><span class="mode-icon">♟</span><h3>Đấu Bot</h3><p>Luyện chiến thuật với ba cấp độ AI.</p><label class="select-field"><span>Độ khó</span><select id="pve-difficulty"><option value="EASY">Dễ</option><option value="MEDIUM" selected>Trung bình</option><option value="HARD">Khó</option></select></label><button class="button primary" data-create-game="PVE" type="button">Bắt đầu PvE</button></article><article class="mode-card featured"><span class="mode-icon">⚔</span><h3>Ghép trận PvP</h3><p>Tìm phòng chờ hoặc tạo trận xếp hạng.</p><div class="mode-spacer"></div><button id="quick-match" class="button primary" type="button">Tìm đối thủ</button></article><article class="mode-card"><span class="mode-icon">♞</span><h3>Cùng thiết bị</h3><p>Hai người chơi trên một bàn cờ.</p><div class="mode-spacer"></div><button class="button secondary" data-create-game="LOCAL" type="button">Chơi local</button></article></div></section>
+        <section class="panel"><div class="section-title"><div><p class="kicker">BẮT ĐẦU VÁN MỚI</p><h2>Chọn đối thủ</h2></div></div><div class="mode-grid"><article class="mode-card"><span class="mode-icon">♟</span><h3>Đấu Bot</h3><p>Luyện chiến thuật với ba cấp độ AI.</p><label class="select-field"><span>Độ khó</span><select id="pve-difficulty"><option value="EASY">Dễ</option><option value="MEDIUM" selected>Trung bình</option><option value="HARD">Khó</option></select></label><label class="select-field"><span>Phe của bạn</span><select id="pve-side"><option value="WHITE" selected>Trắng</option><option value="BLACK">Đen</option><option value="RANDOM">Ngẫu nhiên</option></select></label><button class="button primary" data-create-game="PVE" type="button">Bắt đầu PvE</button></article><article class="mode-card featured"><span class="mode-icon">⚔</span><h3>Ghép trận PvP</h3><p>Tìm phòng chờ hoặc tạo trận xếp hạng.</p><div class="mode-spacer"></div><button id="quick-match" class="button primary" type="button">Tìm đối thủ</button></article><article class="mode-card"><span class="mode-icon">♞</span><h3>Cùng thiết bị</h3><p>Hai người chơi trên một bàn cờ.</p><div class="mode-spacer"></div><button class="button secondary" data-create-game="LOCAL" type="button">Chơi local</button></article></div></section>
         <section class="panel"><div class="section-title"><div><p class="kicker">PHÒNG PVP</p><h2>Đang chờ đối thủ</h2></div><button id="refresh-waiting" class="button ghost compact" type="button">Làm mới</button></div><div id="waiting-games" class="list-state">Chưa có phòng đang chờ.</div></section>
       </section>
       <section class="page" data-page="play">
@@ -46,6 +48,7 @@
       <section class="page" data-page="collection"><div class="page-heading"><div><p class="kicker">KHO VẬT PHẨM</p><h1>Thẻ & cửa hàng</h1><p>Mua và quản lý thẻ chiến thuật bằng Gold.</p></div></div><div class="two-column"><section class="panel"><p class="kicker">SỞ HỮU</p><h2>Kho thẻ</h2><div id="card-inventory" class="card-grid list-state">Đang tải kho thẻ…</div></section><section class="panel"><p class="kicker">CỬA HÀNG</p><h2>Thẻ đang bán</h2><div id="shop-items" class="card-grid list-state">Đang tải cửa hàng…</div></section></div></section>
       <section class="page" data-page="puzzles"><div class="page-heading"><div><p class="kicker">LUYỆN TẬP</p><h1>Puzzle chiến thuật</h1><p>Giải nước đi tốt nhất để nhận Gold. Mỗi puzzle chỉ nhận thưởng một lần.</p></div></div><div id="puzzles" class="puzzle-grid list-state">Đang tải puzzle…</div></section>
       <section class="page" data-page="leaderboard"><div class="page-heading"><div><p class="kicker">BẢNG XẾP HẠNG</p><h1>Những kỳ thủ dẫn đầu</h1><p>Xếp theo Rating và kinh nghiệm.</p></div></div><div id="leaderboard" class="panel leaderboard list-state">Đang tải bảng xếp hạng…</div></section>
+      <section class="page" data-page="admin"><div class="page-heading"><div><p class="kicker">TRUNG TÂM ĐIỀU HÀNH</p><h1>Quản trị Chess²</h1><p>Quản lý tài khoản, ví, quyền, kho thẻ và cửa hàng.</p></div></div><div id="admin-overview" class="admin-dashboard list-state">Chỉ tài khoản ADMIN mới truy cập được.</div></section>
     </section>
   </main>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>

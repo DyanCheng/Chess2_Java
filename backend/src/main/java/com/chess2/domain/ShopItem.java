@@ -14,4 +14,5 @@ public class ShopItem {
     protected ShopItem() { }
     public ShopItem(String name, UUID cardId, long price) { this.name=name; this.cardId=cardId; this.price=price; }
     public UUID getId() { return id; } public String getName() { return name; } public UUID getCardId() { return cardId; } public long getPrice() { return price; } public boolean isActive() { return active; }
+    public void update(long nextPrice, boolean nextActive) { if (nextPrice < 0) throw new IllegalArgumentException("Price cannot be negative"); price=nextPrice; active=nextActive; }
 }

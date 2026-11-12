@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface GameRepository extends JpaRepository<Game, UUID> {
     List<Game> findTop20ByWhitePlayerIdOrBlackPlayerIdOrderByUpdatedAtDesc(UUID whitePlayerId, UUID blackPlayerId);
     List<Game> findTop20ByStatusOrderByCreatedAtAsc(GameStatus status);
+    long countByStatus(GameStatus status);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Game> findWithLockById(UUID id);
 }

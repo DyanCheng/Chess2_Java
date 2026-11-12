@@ -17,7 +17,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-@SpringBootTest
+@SpringBootTest(properties={"app.admin.username=test_admin","app.admin.email=admin@chess2.test","app.admin.password=TestAdminPassword123!"})
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class ChessApiTest {
@@ -31,6 +31,16 @@ class ChessApiTest {
         mvc.perform(get("/api/auth/me").header("Authorization", bearer(token)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.role").value("PLAYER"))
                 .andExpect(jsonPath("$.gold").value(500));
+    }
+
+    @Test
+    void configuredAdminCanOpenDashboardAndManageWallets() throws Exception {
+        MvcResult login=mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content("{\"username\":\"test_admin\",\"password\":\"TestAdminPassword123!\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.player.role").value("ADMIN")).andReturn();
+        JsonNode json=mapper.readTree(login.getResponse().getContentAsString());String token=json.get("accessToken").asText();String id=json.at("/player/id").asText();
+        mvc.perform(get("/api/admin/overview").header("Authorization",bearer(token))).andExpect(status().isOk()).andExpect(jsonPath("$.cards").value(15));
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/admin/users/{id}/wallet",id).header("Authorization",bearer(token)).contentType(MediaType.APPLICATION_JSON).content("{\"gold\":900,\"gems\":12}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.gold").value(900)).andExpect(jsonPath("$.gems").value(12));
     }
 
     @Test
@@ -48,6 +58,22 @@ class ChessApiTest {
                 .andExpect(status().isBadRequest());
         mvc.perform(post("/api/games/{id}/moves",gameId).header("Authorization",bearer(token)).contentType(MediaType.APPLICATION_JSON).content("{\"from\":\"e2\",\"to\":\"e4\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.currentTurn").value("WHITE"));
+    }
+
+    @Test
+    void pveCanStartAsBlackAndBotMakesTheOpeningMove() throws Exception {
+        String token=register();
+        mvc.perform(post("/api/games").header("Authorization",bearer(token)).contentType(MediaType.APPLICATION_JSON).content("{\"type\":\"PVE\",\"side\":\"BLACK\",\"difficulty\":\"EASY\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.playerSide").value("BLACK"))
+                .andExpect(jsonPath("$.currentTurn").value("BLACK"));
+    }
+
+    @Test
+    void capturingAPieceReducesArcadeHealth() throws Exception {
+        String token=register();String gameId=createGame(token,"LOCAL");
+        move(token,gameId,"e2","e4");move(token,gameId,"d7","d5");
+        mvc.perform(post("/api/games/{id}/moves",gameId).header("Authorization",bearer(token)).contentType(MediaType.APPLICATION_JSON).content("{\"from\":\"e4\",\"to\":\"d5\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.blackHp").value(95)).andExpect(jsonPath("$.whiteHp").value(100));
     }
 
     @Test
@@ -122,6 +148,7 @@ class ChessApiTest {
         MvcResult result=mvc.perform(post("/api/games").header("Authorization",bearer(token)).contentType(MediaType.APPLICATION_JSON).content("{\"type\":\""+type+"\"}"))
                 .andExpect(status().isOk()).andReturn(); return mapper.readTree(result.getResponse().getContentAsString()).get("id").asText();
     }
+    private void move(String token,String id,String from,String to) throws Exception {mvc.perform(post("/api/games/{id}/moves",id).header("Authorization",bearer(token)).contentType(MediaType.APPLICATION_JSON).content("{\"from\":\""+from+"\",\"to\":\""+to+"\"}")).andExpect(status().isOk());}
     private static String bearer(String token) { return "Bearer "+token; }
     private record Registration(String username,String email,String password) { }
     private record Guest(String guestKey) { }

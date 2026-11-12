@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 public class GameController {
     private final GameService games;
     public GameController(GameService games) { this.games=games; }
-    @PostMapping public GameDtos.GameResponse create(@AuthenticationPrincipal UserAccount user,@Valid @RequestBody GameDtos.CreateGameRequest request) { return games.create(user,GameType.valueOf(request.type()),request.difficulty()); }
+    @PostMapping public GameDtos.GameResponse create(@AuthenticationPrincipal UserAccount user,@Valid @RequestBody GameDtos.CreateGameRequest request) { return games.create(user,GameType.valueOf(request.type()),request.difficulty(),request.side()); }
     @PostMapping("/quick-match") public GameDtos.GameResponse quickMatch(@AuthenticationPrincipal UserAccount user) { return games.quickMatch(user); }
     @GetMapping("/waiting") public List<GameDtos.GameResponse> waiting() { return games.waiting(); }
     @GetMapping("/history") public List<GameDtos.GameResponse> history(@AuthenticationPrincipal UserAccount user) { return games.history(user); }
