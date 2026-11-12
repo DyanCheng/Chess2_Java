@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '25'
+          java-version: '21'
           cache: maven
       - run: mvn --batch-mode verify
       - run: docker build -t chess2-java:${{ github.sha }} .
@@ -31,7 +31,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '25'
+          java-version: '21'
           cache: maven
       - uses: actions/setup-node@v4
         with:
@@ -49,3 +49,4 @@ jobs:
             playwright-report/
             test-results/
           if-no-files-found: ignore
+
