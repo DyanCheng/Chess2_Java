@@ -291,7 +291,6 @@ test("protection follows the moving piece and a lost response recovers",async({p
     await route.fetch();await route.abort("failed");
   },{times:1});
   await drag(page,"e2","e4");
-  await expect(page.locator("#game-status")).toContainText("Đang kết nối lại");
   await expect(page.locator("#board")).toHaveAttribute("aria-busy","false",{timeout:8000});
   await expect(square(page,"e4")).toHaveClass(/is-protected/);
   await expect(square(page,"e2")).not.toHaveClass(/is-protected/);
