@@ -124,7 +124,7 @@ This is the implemented visual world selected through the user-approved desktop/
 - Readable Vietnamese body type with a pixel wordmark.
 - Compact responsive controls and explicit turn, HP and targeting states.
 
-Source authority is the cascade `app.css → arcade.css → club.css` under `backend/src/main/resources/static/assets/css/`, with `experience.js`, `visuals.js` and `render.js` under the adjacent `js/` directory. Frontmatter records reused implemented values; it is not a new CSS theme file. The sidecar holds extension metadata. Approved and actual captures live in `.impeccable/review/`; verification scope is recorded in `docs/arcane-club-design-verification.md`.
+Source authority is the cascade `app.css → arcade.css → club.css` under `apps/web/assets/css/`, with `experience.js`, `visuals.js` and `render.js` under the adjacent `js/` directory. Frontmatter records reused implemented values; it is not a new CSS theme file. The sidecar holds extension metadata. Approved and actual captures live in `.impeccable/review/`; verification scope is recorded in `docs/arcane-club-design-verification.md`.
 
 ## Colors
 

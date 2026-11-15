@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101a19">
+  <meta name="description" content="Cổng quản trị local cho Chess² Arcane Chess Club.">
+  <title>Chess² Control Room</title>
+  <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+  <a class="skip-link" href="#admin-content">Bỏ qua điều hướng</a>
+
+  <section id="login-view" class="login-shell" aria-labelledby="login-title">
+    <div class="login-brand" aria-label="Chess² Arcane Chess Club">
+      <span class="brand-mark" aria-hidden="true">C²</span>
+      <div><strong>CHESS²</strong><small>CONTROL ROOM</small></div>
+    </div>
+    <form id="login-form" class="login-panel" novalidate>
+      <div class="login-copy">
+        <h1 id="login-title">Đăng nhập quản trị</h1>
+        <p>Dùng tài khoản có quyền ADMIN để quản lý người chơi và vận hành hệ thống local.</p>
+      </div>
+      <label class="field"><span>Tên đăng nhập</span><input id="username" name="username" autocomplete="username" required></label>
+      <label class="field"><span>Mật khẩu</span><input id="password" name="password" type="password" autocomplete="current-password" minlength="8" required></label>
+      <button id="login-submit" class="button primary" type="submit">Đăng nhập an toàn</button>
+      <p id="login-message" class="form-message" role="alert" aria-live="polite"></p>
+      <a class="back-link" href="/">Quay lại Arcane Chess Club</a>
+    </form>
+  </section>
+
+  <div id="portal-view" class="portal" hidden>
+    <aside class="sidebar">
+      <a class="portal-brand" href="#overview" aria-label="Chess² Control Room">
+        <span class="brand-mark" aria-hidden="true">C²</span>
+        <span><strong>CHESS²</strong><small>CONTROL ROOM</small></span>
+      </a>
+      <nav class="admin-nav" aria-label="Điều hướng quản trị">
+        <button type="button" data-section="overview" aria-current="page">Tổng quan</button>
+        <button type="button" data-section="accounts">Tài khoản</button>
+        <button type="button" data-section="shop">Cửa hàng</button>
+        <button type="button" data-section="system">Hệ thống</button>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="connection-dot" aria-hidden="true"></span>
+        <div><strong id="sidebar-admin">Administrator</strong><small>Phiên quản trị local</small></div>
+      </div>
+    </aside>
+
+    <main id="admin-content" class="workspace" tabindex="-1">
+      <header class="topbar">
+        <div><span class="environment">LOCAL</span><span id="last-updated">Chưa đồng bộ</span></div>
+        <div class="topbar-actions">
+          <button id="refresh-data" class="button secondary" type="button">Làm mới dữ liệu</button>
+          <button id="logout" class="button ghost" type="button">Đăng xuất</button>
+        </div>
+      </header>
+
+      <section class="admin-page is-active" data-page="overview" aria-labelledby="overview-title">
+        <div class="page-heading"><div><h1 id="overview-title">Trung tâm vận hành</h1><p>Nắm tình trạng hệ thống và các chỉ số quan trọng trong một lượt quét.</p></div><span id="health-badge" class="status-badge pending">Đang kiểm tra</span></div>
+        <div id="metric-strip" class="metric-strip" aria-label="Chỉ số hệ thống"></div>
+        <div class="overview-grid">
+          <section class="surface system-snapshot"><div class="section-heading"><div><h2>Tình trạng dịch vụ</h2><p>Spring Boot API và kết nối dữ liệu local.</p></div><button class="text-button" type="button" data-go="system">Xem chi tiết</button></div><dl id="service-status" class="status-list"></dl></section>
+          <section class="surface"><div class="section-heading"><div><h2>Người dùng cần chú ý</h2><p>Tài khoản quản trị và khách gần đây.</p></div><button class="text-button" type="button" data-go="accounts">Quản lý</button></div><div id="attention-users" class="attention-list"></div></section>
+        </div>
+      </section>
+
+      <section class="admin-page" data-page="accounts" aria-labelledby="accounts-title" hidden>
+        <div class="page-heading"><div><h1 id="accounts-title">Tài khoản người chơi</h1><p>Tìm kiếm, phân quyền, chỉnh tài nguyên và cấp thẻ chiến thuật.</p></div><span id="account-count" class="count-label"></span></div>
+        <div class="table-toolbar">
+          <label class="search-field"><span>Tìm tài khoản</span><input id="user-search" type="search" placeholder="Tên hoặc email…" autocomplete="off"></label>
+          <label class="compact-field"><span>Quyền</span><select id="role-filter"><option value="ALL">Tất cả</option><option value="ADMIN">Admin</option><option value="PLAYER">Người chơi</option></select></label>
+        </div>
+        <section id="account-editor" class="surface account-editor" aria-labelledby="dialog-title" hidden>
+          <div class="dialog-heading"><div><h2 id="dialog-title" tabindex="-1">Quản lý tài khoản</h2><p id="dialog-email"></p></div><button id="close-editor" class="button ghost close-button" type="button">Đóng</button></div>
+          <div class="editor-grid">
+            <div class="dialog-section"><h3>Quyền truy cập</h3><label class="field"><span>Vai trò</span><select id="dialog-role"><option value="PLAYER">PLAYER</option><option value="ADMIN">ADMIN</option></select></label><button id="save-role" class="button secondary" type="button">Lưu quyền</button></div>
+            <div class="dialog-section"><h3>Tài nguyên</h3><div class="field-pair"><label class="field"><span>Gold</span><input id="dialog-gold" type="number" min="0" required></label><label class="field"><span>Gem</span><input id="dialog-gems" type="number" min="0" required></label></div><button id="save-wallet" class="button secondary" type="button">Lưu tài nguyên</button></div>
+            <div class="dialog-section"><h3>Cấp thẻ chiến thuật</h3><div class="field-pair card-grant"><label class="field"><span>Thẻ</span><select id="dialog-card"></select></label><label class="field quantity"><span>Số lượng</span><input id="dialog-quantity" type="number" min="1" value="1" required></label></div><button id="grant-card" class="button primary" type="button">Cấp thẻ</button></div>
+          </div>
+        </section>
+        <div class="surface table-surface">
+          <div class="table-scroll"><table><thead><tr><th>Tài khoản</th><th>Loại</th><th>Quyền</th><th>Rating</th><th>Thành tích</th><th>Tài nguyên</th><th><span class="sr-only">Thao tác</span></th></tr></thead><tbody id="user-rows"></tbody></table></div>
+          <p id="users-empty" class="empty-state" hidden>Không có tài khoản phù hợp. Hãy đổi từ khóa hoặc bộ lọc.</p>
+        </div>
+      </section>
+
+      <section class="admin-page" data-page="shop" aria-labelledby="shop-title" hidden>
+        <div class="page-heading"><div><h1 id="shop-title">Cửa hàng chiến thuật</h1><p>Điều chỉnh giá và trạng thái bán của từng thẻ. Thay đổi có hiệu lực ngay.</p></div></div>
+        <div class="surface table-surface"><div class="table-scroll"><table><thead><tr><th>Thẻ</th><th>Giá Gold</th><th>Trạng thái</th><th>Cập nhật</th></tr></thead><tbody id="shop-rows"></tbody></table></div></div>
+      </section>
+
+      <section class="admin-page" data-page="system" aria-labelledby="system-title" hidden>
+        <div class="page-heading"><div><h1 id="system-title">Hệ thống local</h1><p>Thông tin vận hành an toàn, không hiển thị secret hoặc chuỗi kết nối.</p></div></div>
+        <div class="system-grid">
+          <section class="surface"><h2>Trạng thái runtime</h2><dl id="runtime-details" class="detail-list"></dl></section>
+          <section class="surface"><h2>Phạm vi quyền ADMIN</h2><ul class="permission-list"><li>Quản lý vai trò tài khoản</li><li>Điều chỉnh Gold và Gem</li><li>Cấp thẻ chiến thuật</li><li>Điều hành giá và trạng thái cửa hàng</li></ul></section>
+          <section class="surface safety-panel"><h2>Nguyên tắc an toàn</h2><p>Không thể tự gỡ quyền ADMIN của tài khoản đang đăng nhập. Mọi API quản trị đều yêu cầu JWT có vai trò ADMIN.</p></section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="/admin/admin.js"></script>
+</body>
+</html>

@@ -34,6 +34,6 @@ The same independent reviewer rescored all four findings **resolved**, with disp
 ## Scope limits
 
 - A static image cannot establish equivalence to chess.com interaction performance. Drag behavior is checked; no cross-device FPS benchmark is claimed.
-- Gameplay remains the existing arcade variant, with existing PvP polling and backend rules.
+- Gameplay remains the existing arcade variant, with authenticated WebSocket notifications, REST recovery and the existing backend rules.
 - These are local-source changes. The deployed production site has not been updated by this pass.
 - The artwork PNG is shared by six cards; it is approximately 2.7 MB. Future delivery optimization can generate a smaller encoding without changing the design.

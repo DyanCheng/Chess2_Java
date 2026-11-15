@@ -5,7 +5,7 @@ const localChromium = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ||
   (process.platform === "win32" && existsSync(installedChromium) ? installedChromium : undefined);
 
 module.exports = defineConfig({
-  testDir: "./e2e",
+  testDir: "./tests/e2e",
   timeout: 60_000,
   retries: 0,
   workers: 1,
@@ -19,7 +19,7 @@ module.exports = defineConfig({
     { name: "mobile", use: { ...devices["Pixel 7"] } }
   ],
   webServer: {
-    command: "mvn -f backend/pom.xml \"-Djava.version=17\" \"-Dspring-boot.run.arguments=--server.port=8088\" spring-boot:run",
+    command: "mvn -f apps/server/pom.xml \"-Djava.version=17\" \"-Dspring-boot.run.arguments=--server.port=8088\" spring-boot:run",
     url: "http://127.0.0.1:8088/actuator/health",
     timeout: 90_000,
     reuseExistingServer: false,

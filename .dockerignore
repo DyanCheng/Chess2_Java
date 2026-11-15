@@ -1,0 +1,14 @@
+.git
+.github
+.impeccable
+.vercel
+.env
+.env.*
+**/target
+assets/source
+docs
+node_modules
+playwright-artifacts
+playwright-report
+test-results
+tests

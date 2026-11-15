@@ -1,7 +1,9 @@
 services:
-  backend:
+  app:
+    image: chess2-java:local
     build:
-      context: ./backend
+      context: .
+      dockerfile: Dockerfile
     environment:
       PORT: 8080
       SUPABASE_DB_URL: ${SUPABASE_DB_URL:?Set SUPABASE_DB_URL in .env}
