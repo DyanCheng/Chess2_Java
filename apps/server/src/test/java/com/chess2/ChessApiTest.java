@@ -59,6 +59,49 @@ class ChessApiTest {
     }
 
     @Test
+    void adminCanLockAccountsAndInspectUserActivity() throws Exception {
+        String username="locked"+UUID.randomUUID().toString().replace("-","").substring(0,8),password="PlayerPassword123!";
+        MvcResult registration=mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(new Registration(username,username+"@example.com",password))))
+                .andExpect(status().isOk()).andReturn();
+        JsonNode player=mapper.readTree(registration.getResponse().getContentAsString());
+        String playerToken=player.get("accessToken").asText(),playerId=player.at("/player/id").asText();
+        mvc.perform(post("/api/games").header("Authorization",bearer(playerToken)).contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(java.util.Map.of("type","LOCAL"))))
+                .andExpect(status().isOk());
+
+        MvcResult adminLogin=mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(new AuthLogin("test_admin","TestAdminPassword123!"))))
+                .andExpect(status().isOk()).andReturn();
+        JsonNode admin=mapper.readTree(adminLogin.getResponse().getContentAsString());
+        String adminToken=admin.get("accessToken").asText(),adminId=admin.at("/player/id").asText();
+
+        mvc.perform(get("/api/admin/logs").param("userId",playerId).header("Authorization",bearer(adminToken)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].category").value("GAME"))
+                .andExpect(jsonPath("$[0].action").value("Tạo ván đấu"));
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/admin/users/{id}/lock",playerId)
+                        .header("Authorization",bearer(adminToken)).contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(java.util.Map.of("locked",true,"reason","Kiểm thử khóa"))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.locked").value(true))
+                .andExpect(jsonPath("$.lockedReason").value("Kiểm thử khóa"));
+        mvc.perform(get("/api/auth/me").header("Authorization",bearer(playerToken))).andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(new AuthLogin(username,password))))
+                .andExpect(status().isLocked());
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/admin/users/{id}/lock",adminId)
+                        .header("Authorization",bearer(adminToken)).contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(java.util.Map.of("locked",true))))
+                .andExpect(status().isConflict());
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/admin/users/{id}/lock",playerId)
+                        .header("Authorization",bearer(adminToken)).contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(java.util.Map.of("locked",false))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.locked").value(false));
+        mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(new AuthLogin(username,password))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void frontendAssetsArePublicButGameplayRemainsProtected() throws Exception {
         mvc.perform(get("/assets/js/app.js")).andExpect(status().isOk());
         mvc.perform(get("/assets/css/app.css")).andExpect(status().isOk());
@@ -276,5 +319,6 @@ class ChessApiTest {
     private void move(String token,String id,String from,String to) throws Exception {mvc.perform(post("/api/games/{id}/moves",id).header("Authorization",bearer(token)).contentType(MediaType.APPLICATION_JSON).content("{\"from\":\""+from+"\",\"to\":\""+to+"\"}")).andExpect(status().isOk());}
     private static String bearer(String token) { return "Bearer "+token; }
     private record Registration(String username,String email,String password) { }
+    private record AuthLogin(String username,String password) { }
     private record Guest(String guestKey) { }
 }

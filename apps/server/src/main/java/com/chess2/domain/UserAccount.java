@@ -26,6 +26,9 @@ public class UserAccount implements UserDetails {
     @Column(nullable = false) private int losses = 0;
     @Column(nullable = false) private int draws = 0;
     @Column(name = "created_at", nullable = false) private Instant createdAt = Instant.now();
+    @Column(name = "locked_at") private Instant lockedAt;
+    @Column(name = "locked_reason", length = 200) private String lockedReason;
+    @Column(name = "locked_by") private UUID lockedBy;
 
     protected UserAccount() { }
     public UserAccount(String username, String email, String passwordHash) { this.username = username; this.email = email; this.passwordHash = passwordHash; }
@@ -48,8 +51,18 @@ public class UserAccount implements UserDetails {
     public int getWins() { return wins; }
     public int getLosses() { return losses; }
     public int getDraws() { return draws; }
+    public Instant getCreatedAt() { return createdAt; }
+    public Instant getLockedAt() { return lockedAt; }
+    public String getLockedReason() { return lockedReason; }
+    public UUID getLockedBy() { return lockedBy; }
+    @Override public boolean isAccountNonLocked() { return lockedAt == null; }
     public void grantAdmin() { role = Role.ADMIN; }
     public void setRole(Role value) { role = value; }
+    public void setLocked(boolean locked, String reason, UUID actorId) {
+        lockedAt = locked ? Instant.now() : null;
+        lockedReason = locked ? reason : null;
+        lockedBy = locked ? actorId : null;
+    }
     public void changePassword(String encodedPassword) { passwordHash = encodedPassword; }
     public void addExperience(long amount) { experience += amount; level = (int) Math.max(1, experience / 500 + 1); }
     public void recordWin() { wins++; rating += 24; addExperience(120); }

@@ -309,25 +309,55 @@ test("player can choose black and bot opens the game",async({page})=>{
   await expect(page.locator("#board")).toHaveAttribute("aria-busy","false");
 });
 
-test("configured admin can use the separate operations portal",async({page})=>{
+test("configured admin can manage access and inspect activity logs",async({page},testInfo)=>{
+  const playerName="audit"+Date.now().toString(36);
+  const registration=await page.request.post("/api/auth/register",{data:{username:playerName,email:playerName+"@example.com",password:"AuditPlayer123!"}});
+  expect(registration.ok()).toBe(true);
+  const registered=await registration.json();
+  const game=await page.request.post("/api/games",{headers:{Authorization:"Bearer "+registered.accessToken},data:{type:"LOCAL"}});
+  expect(game.ok()).toBe(true);
   await page.goto("/admin/");
   await page.locator("#username").fill("e2e_admin");
   await page.locator("#password").fill("E2eAdminPassword123!");
   await page.locator("#login-submit").click();
   await expect(page.locator("#portal-view")).toBeVisible();
-  await expect(page.locator("#metric-strip .metric")).toHaveCount(5);
+  await expect(page.locator("#metric-strip .metric")).toHaveCount(6);
   await page.getByRole("button",{name:"Tài khoản",exact:true}).click();
   const row=page.locator("#user-rows tr").filter({hasText:"e2e_admin"}).first();
   const manageAccount=row.getByRole("button",{name:"Quản lý"});
   await manageAccount.click();
   await expect(page.locator("#dialog-title")).toBeFocused();
+  await expect(page.locator("#toggle-lock")).toBeDisabled();
   await page.locator("#dialog-gold").fill("777");
   const saveWallet=page.locator("#save-wallet");
   await expect(saveWallet).toBeVisible();
+  await saveWallet.scrollIntoViewIfNeeded();
   expect(await saveWallet.evaluate(element=>{const rect=element.getBoundingClientRect(),hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);return hit===element||element.contains(hit);})).toBe(true);
   await saveWallet.dispatchEvent("click");
   await expect(row).toContainText("777 G");
   await expect(manageAccount).toBeFocused();
+
+  await page.locator("#user-search").fill(playerName);
+  const playerRow=page.locator("#user-rows tr").filter({hasText:playerName});
+  await playerRow.getByRole("button",{name:"Quản lý"}).click();
+  await page.locator("#dialog-lock-reason").fill("Kiểm thử hành vi");
+  const lockButton=page.locator("#toggle-lock");
+  await lockButton.scrollIntoViewIfNeeded();
+  expect(await lockButton.evaluate(element=>{const rect=element.getBoundingClientRect(),hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);return hit===element||element.contains(hit);})).toBe(true);
+  await lockButton.dispatchEvent("click");
+  await expect(playerRow).toContainText("Đã khóa");
+  const lockedLogin=await page.request.post("/api/auth/login",{data:{username:playerName,password:"AuditPlayer123!"}});
+  expect(lockedLogin.status()).toBe(423);
+
+  await page.getByRole("button",{name:"Nhật ký",exact:true}).click();
+  await page.locator("#log-search").fill(playerName);
+  await expect(page.locator("#log-rows")).toContainText("Tạo ván đấu");
+  await expect(page.locator("#log-rows")).toContainText("POST /api/games");
+
+  await page.getByRole("button",{name:"Tài khoản",exact:true}).click();
+  await playerRow.getByRole("button",{name:"Quản lý"}).click();
+  await page.locator("#toggle-lock").dispatchEvent("click");
+  await expect(playerRow).toContainText("Hoạt động");
 
   await page.route("**/actuator/health",route=>route.abort("failed"));
   await page.locator("#refresh-data").click();
@@ -335,6 +365,8 @@ test("configured admin can use the separate operations portal",async({page})=>{
   await page.unroute("**/actuator/health");
   await page.locator("#refresh-data").click();
   await expect(page.locator("#health-badge")).toHaveText("Hệ thống ổn định");
+  await page.getByRole("button",{name:"Nhật ký",exact:true}).click();
+  await page.screenshot({path:testInfo.outputPath("admin-logs.png"),fullPage:true,animations:"disabled"});
 });
 
 test("register, logout, login and reduced motion",async({page})=>{

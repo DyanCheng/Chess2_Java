@@ -16,8 +16,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
-    private final UserRepository users; private final WalletRepository wallets; private final PasswordEncoder encoder; private final JwtService jwt; private final CatalogService catalog;
-    public AuthService(UserRepository users, WalletRepository wallets, PasswordEncoder encoder, JwtService jwt, CatalogService catalog) { this.users=users; this.wallets=wallets; this.encoder=encoder; this.jwt=jwt; this.catalog=catalog; }
+    private final UserRepository users; private final WalletRepository wallets; private final PasswordEncoder encoder; private final JwtService jwt; private final CatalogService catalog; private final AuditService audit;
+    public AuthService(UserRepository users, WalletRepository wallets, PasswordEncoder encoder, JwtService jwt, CatalogService catalog, AuditService audit) { this.users=users; this.wallets=wallets; this.encoder=encoder; this.jwt=jwt; this.catalog=catalog; this.audit=audit; }
     @Transactional public AuthDtos.AuthResponse register(AuthDtos.RegisterRequest request) {
         String username = request.username().trim();
         String email = request.email().trim().toLowerCase(Locale.ROOT);
@@ -41,7 +41,9 @@ public class AuthService {
     public AuthDtos.AuthResponse login(AuthDtos.LoginRequest request) {
         UserAccount user = users.findByUsernameIgnoreCase(request.username()).orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "Invalid username or password"));
         if (!encoder.matches(request.password(), user.getPassword())) throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+        if (!user.isAccountNonLocked()) { audit.record(user,"POST","/api/auth/login",423); throw new ApiException(HttpStatus.LOCKED, "Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên."); }
         catalog.grantStarterDeck(user);
+        audit.record(user,"POST","/api/auth/login",200);
         return response(user, wallet(user));
     }
     public AuthDtos.PlayerResponse profile(UserAccount user) { Wallet wallet=wallet(user); return player(user, wallet); }

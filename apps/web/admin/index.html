@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101a19">
-  <meta name="description" content="Cổng quản trị local cho Chess² Arcane Chess Club.">
+  <meta name="description" content="Cổng quản trị vận hành Chess² Arcane Chess Club.">
   <title>Chess² Control Room</title>
   <link rel="stylesheet" href="/admin/admin.css">
 </head>
@@ -19,7 +19,7 @@
     <form id="login-form" class="login-panel" novalidate>
       <div class="login-copy">
         <h1 id="login-title">Đăng nhập quản trị</h1>
-        <p>Dùng tài khoản có quyền ADMIN để quản lý người chơi và vận hành hệ thống local.</p>
+        <p>Dùng tài khoản có quyền ADMIN để quản lý người chơi và vận hành hệ thống.</p>
       </div>
       <label class="field"><span>Tên đăng nhập</span><input id="username" name="username" autocomplete="username" required></label>
       <label class="field"><span>Mật khẩu</span><input id="password" name="password" type="password" autocomplete="current-password" minlength="8" required></label>
@@ -39,17 +39,18 @@
         <button type="button" data-section="overview" aria-current="page">Tổng quan</button>
         <button type="button" data-section="accounts">Tài khoản</button>
         <button type="button" data-section="shop">Cửa hàng</button>
+        <button type="button" data-section="logs">Nhật ký</button>
         <button type="button" data-section="system">Hệ thống</button>
       </nav>
       <div class="sidebar-footer">
         <span class="connection-dot" aria-hidden="true"></span>
-        <div><strong id="sidebar-admin">Administrator</strong><small>Phiên quản trị local</small></div>
+        <div><strong id="sidebar-admin">Administrator</strong><small>Phiên quản trị bảo mật</small></div>
       </div>
     </aside>
 
     <main id="admin-content" class="workspace" tabindex="-1">
       <header class="topbar">
-        <div><span class="environment">LOCAL</span><span id="last-updated">Chưa đồng bộ</span></div>
+        <div><span class="environment">RUNTIME</span><span id="last-updated">Chưa đồng bộ</span></div>
         <div class="topbar-actions">
           <button id="refresh-data" class="button secondary" type="button">Làm mới dữ liệu</button>
           <button id="logout" class="button ghost" type="button">Đăng xuất</button>
@@ -60,27 +61,30 @@
         <div class="page-heading"><div><h1 id="overview-title">Trung tâm vận hành</h1><p>Nắm tình trạng hệ thống và các chỉ số quan trọng trong một lượt quét.</p></div><span id="health-badge" class="status-badge pending">Đang kiểm tra</span></div>
         <div id="metric-strip" class="metric-strip" aria-label="Chỉ số hệ thống"></div>
         <div class="overview-grid">
-          <section class="surface system-snapshot"><div class="section-heading"><div><h2>Tình trạng dịch vụ</h2><p>Spring Boot API và kết nối dữ liệu local.</p></div><button class="text-button" type="button" data-go="system">Xem chi tiết</button></div><dl id="service-status" class="status-list"></dl></section>
-          <section class="surface"><div class="section-heading"><div><h2>Người dùng cần chú ý</h2><p>Tài khoản quản trị và khách gần đây.</p></div><button class="text-button" type="button" data-go="accounts">Quản lý</button></div><div id="attention-users" class="attention-list"></div></section>
+          <section class="surface system-snapshot"><div class="section-heading"><div><h2>Tình trạng dịch vụ</h2><p>Spring Boot API và kết nối dữ liệu hiện tại.</p></div><button class="text-button" type="button" data-go="system">Xem chi tiết</button></div><dl id="service-status" class="status-list"></dl></section>
+          <section class="surface"><div class="section-heading"><div><h2>Người dùng cần chú ý</h2><p>Ưu tiên tài khoản bị khóa, quản trị viên và khách.</p></div><button class="text-button" type="button" data-go="accounts">Quản lý</button></div><div id="attention-users" class="attention-list"></div></section>
         </div>
       </section>
 
       <section class="admin-page" data-page="accounts" aria-labelledby="accounts-title" hidden>
-        <div class="page-heading"><div><h1 id="accounts-title">Tài khoản người chơi</h1><p>Tìm kiếm, phân quyền, chỉnh tài nguyên và cấp thẻ chiến thuật.</p></div><span id="account-count" class="count-label"></span></div>
+        <div class="page-heading"><div><h1 id="accounts-title">Tài khoản người chơi</h1><p>Tìm kiếm, kiểm soát truy cập, phân quyền và quản lý tài nguyên.</p></div><span id="account-count" class="count-label"></span></div>
         <div class="table-toolbar">
           <label class="search-field"><span>Tìm tài khoản</span><input id="user-search" type="search" placeholder="Tên hoặc email…" autocomplete="off"></label>
           <label class="compact-field"><span>Quyền</span><select id="role-filter"><option value="ALL">Tất cả</option><option value="ADMIN">Admin</option><option value="PLAYER">Người chơi</option></select></label>
+          <label class="compact-field"><span>Truy cập</span><select id="status-filter"><option value="ALL">Tất cả</option><option value="ACTIVE">Đang hoạt động</option><option value="LOCKED">Đã khóa</option></select></label>
         </div>
         <section id="account-editor" class="surface account-editor" aria-labelledby="dialog-title" hidden>
           <div class="dialog-heading"><div><h2 id="dialog-title" tabindex="-1">Quản lý tài khoản</h2><p id="dialog-email"></p></div><button id="close-editor" class="button ghost close-button" type="button">Đóng</button></div>
           <div class="editor-grid">
-            <div class="dialog-section"><h3>Quyền truy cập</h3><label class="field"><span>Vai trò</span><select id="dialog-role"><option value="PLAYER">PLAYER</option><option value="ADMIN">ADMIN</option></select></label><button id="save-role" class="button secondary" type="button">Lưu quyền</button></div>
+            <div class="dialog-section"><h3>Vai trò</h3><label class="field"><span>Quyền hệ thống</span><select id="dialog-role"><option value="PLAYER">PLAYER</option><option value="ADMIN">ADMIN</option></select></label><button id="save-role" class="button secondary" type="button">Lưu quyền</button></div>
+            <div class="dialog-section"><h3>Kiểm soát truy cập</h3><p id="dialog-lock-state" class="lock-summary"></p><label class="field"><span>Lý do khóa</span><input id="dialog-lock-reason" maxlength="200" placeholder="Ví dụ: hành vi bất thường"></label><button id="toggle-lock" class="button danger" type="button">Khóa tài khoản</button></div>
             <div class="dialog-section"><h3>Tài nguyên</h3><div class="field-pair"><label class="field"><span>Gold</span><input id="dialog-gold" type="number" min="0" required></label><label class="field"><span>Gem</span><input id="dialog-gems" type="number" min="0" required></label></div><button id="save-wallet" class="button secondary" type="button">Lưu tài nguyên</button></div>
             <div class="dialog-section"><h3>Cấp thẻ chiến thuật</h3><div class="field-pair card-grant"><label class="field"><span>Thẻ</span><select id="dialog-card"></select></label><label class="field quantity"><span>Số lượng</span><input id="dialog-quantity" type="number" min="1" value="1" required></label></div><button id="grant-card" class="button primary" type="button">Cấp thẻ</button></div>
           </div>
+          <section class="account-activity" aria-labelledby="activity-title"><div class="section-heading"><div><h3 id="activity-title">Hoạt động gần đây</h3><p>Các hành động thay đổi dữ liệu do tài khoản này thực hiện.</p></div></div><div id="user-activity" class="activity-list" aria-live="polite"></div></section>
         </section>
         <div class="surface table-surface">
-          <div class="table-scroll"><table><thead><tr><th>Tài khoản</th><th>Loại</th><th>Quyền</th><th>Rating</th><th>Thành tích</th><th>Tài nguyên</th><th><span class="sr-only">Thao tác</span></th></tr></thead><tbody id="user-rows"></tbody></table></div>
+          <div class="table-scroll"><table><thead><tr><th>Tài khoản</th><th>Loại</th><th>Quyền</th><th>Truy cập</th><th>Rating</th><th>Thành tích</th><th>Tài nguyên</th><th><span class="sr-only">Thao tác</span></th></tr></thead><tbody id="user-rows"></tbody></table></div>
           <p id="users-empty" class="empty-state" hidden>Không có tài khoản phù hợp. Hãy đổi từ khóa hoặc bộ lọc.</p>
         </div>
       </section>
@@ -90,12 +94,25 @@
         <div class="surface table-surface"><div class="table-scroll"><table><thead><tr><th>Thẻ</th><th>Giá Gold</th><th>Trạng thái</th><th>Cập nhật</th></tr></thead><tbody id="shop-rows"></tbody></table></div></div>
       </section>
 
+      <section class="admin-page" data-page="logs" aria-labelledby="logs-title" hidden>
+        <div class="page-heading"><div><h1 id="logs-title">Nhật ký hoạt động</h1><p>Theo dõi các thao tác thay đổi dữ liệu. Token, mật khẩu, nội dung request và địa chỉ IP không được lưu.</p></div><span id="log-count" class="count-label"></span></div>
+        <div class="table-toolbar log-toolbar">
+          <label class="search-field"><span>Tìm nhật ký</span><input id="log-search" type="search" placeholder="Người dùng, hành động hoặc endpoint…" autocomplete="off"></label>
+          <label class="compact-field"><span>Nhóm</span><select id="log-category"><option value="ALL">Tất cả</option><option value="AUTH">Xác thực</option><option value="GAME">Ván đấu</option><option value="INVENTORY">Kho đồ</option><option value="SHOP">Cửa hàng</option><option value="PUZZLE">Puzzle</option><option value="ADMIN">Quản trị</option><option value="SYSTEM">Hệ thống</option></select></label>
+          <label class="compact-field"><span>Kết quả</span><select id="log-result"><option value="ALL">Tất cả</option><option value="SUCCESS">Thành công</option><option value="ERROR">Thất bại</option></select></label>
+        </div>
+        <div class="surface table-surface">
+          <div class="table-scroll"><table><thead><tr><th>Thời gian</th><th>Người dùng</th><th>Nhóm</th><th>Hành động</th><th>Endpoint</th><th>Kết quả</th></tr></thead><tbody id="log-rows"></tbody></table></div>
+          <p id="logs-empty" class="empty-state" hidden>Chưa có sự kiện phù hợp với bộ lọc.</p>
+        </div>
+      </section>
+
       <section class="admin-page" data-page="system" aria-labelledby="system-title" hidden>
-        <div class="page-heading"><div><h1 id="system-title">Hệ thống local</h1><p>Thông tin vận hành an toàn, không hiển thị secret hoặc chuỗi kết nối.</p></div></div>
+        <div class="page-heading"><div><h1 id="system-title">Hệ thống</h1><p>Thông tin vận hành an toàn, không hiển thị secret hoặc chuỗi kết nối.</p></div></div>
         <div class="system-grid">
           <section class="surface"><h2>Trạng thái runtime</h2><dl id="runtime-details" class="detail-list"></dl></section>
-          <section class="surface"><h2>Phạm vi quyền ADMIN</h2><ul class="permission-list"><li>Quản lý vai trò tài khoản</li><li>Điều chỉnh Gold và Gem</li><li>Cấp thẻ chiến thuật</li><li>Điều hành giá và trạng thái cửa hàng</li></ul></section>
-          <section class="surface safety-panel"><h2>Nguyên tắc an toàn</h2><p>Không thể tự gỡ quyền ADMIN của tài khoản đang đăng nhập. Mọi API quản trị đều yêu cầu JWT có vai trò ADMIN.</p></section>
+          <section class="surface"><h2>Phạm vi quyền ADMIN</h2><ul class="permission-list"><li>Khóa và mở khóa tài khoản</li><li>Theo dõi nhật ký hành vi</li><li>Quản lý vai trò, Gold và Gem</li><li>Cấp thẻ và điều hành cửa hàng</li></ul></section>
+          <section class="surface safety-panel"><h2>Nguyên tắc an toàn</h2><p>Không thể tự khóa hoặc tự gỡ quyền ADMIN của tài khoản đang đăng nhập. JWT của tài khoản bị khóa mất hiệu lực ở yêu cầu API tiếp theo. Nhật ký không lưu request body, mật khẩu, token hoặc IP.</p></section>
         </div>
       </section>
     </main>

@@ -24,7 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 UUID userId = UUID.fromString(jwt.parse(token).getSubject());
                 UserAccount user = users.findById(userId).orElse(null);
-                if (user == null) { chain.doFilter(request, response); return; }
+                if (user == null || !user.isAccountNonLocked()) { chain.doFilter(request, response); return; }
                 SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities()));
             } catch (JwtException | IllegalArgumentException ignored) { }
         }

@@ -51,7 +51,7 @@
 }
 html {
   background: var(--bg);
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
 }
 body {
   margin: 0;
@@ -269,6 +269,14 @@ select:focus {
 .button.secondary:hover {
   background: var(--hover);
 }
+.button.danger {
+  background: #422a24;
+  border-color: #ed9b8b55;
+  color: #ffccba;
+}
+.button.danger:hover {
+  background: #543129;
+}
 .button.ghost {
   background: transparent;
   color: var(--muted);
@@ -445,7 +453,9 @@ select:focus {
 .status-badge,
 .count-label,
 .role-badge,
-.type-badge {
+.type-badge,
+.access-badge,
+.result-badge {
   display: inline-flex;
   align-items: center;
   min-height: 28px;
@@ -595,9 +605,22 @@ select:focus {
   background: #ffffff08;
   color: var(--muted);
 }
+.access-badge {
+  background: #a8d58e12;
+  color: var(--success);
+}
+.access-badge.locked,
+.result-badge.error {
+  background: #ed9b8b14;
+  color: var(--danger);
+}
+.result-badge {
+  background: #a8d58e12;
+  color: var(--success);
+}
 .table-toolbar {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) 180px;
+  grid-template-columns: minmax(260px, 1fr) 180px 180px;
   gap: 12px;
   margin-bottom: 14px;
 }
@@ -650,6 +673,15 @@ tbody tr:hover {
 }
 .number {
   font-variant-numeric: tabular-nums;
+}
+time,
+.result-badge {
+  font-variant-numeric: tabular-nums;
+}
+td code {
+  color: var(--muted);
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-size: 12px;
 }
 .row-action {
   min-height: 34px;
@@ -705,7 +737,7 @@ tbody tr:hover {
 }
 .editor-grid {
   display: grid;
-  grid-template-columns: 0.8fr 1fr 1.2fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
 }
 .dialog-heading {
@@ -728,6 +760,11 @@ tbody tr:hover {
 .dialog-section > .button {
   width: 100%;
 }
+.lock-summary {
+  min-height: 42px;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
 .field-pair {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -735,6 +772,45 @@ tbody tr:hover {
 }
 .card-grant {
   grid-template-columns: minmax(0, 1fr) 110px;
+}
+.account-activity {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.account-activity .section-heading {
+  margin-bottom: 8px;
+}
+.activity-list {
+  display: grid;
+}
+.activity-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.activity-item:last-child {
+  border-bottom: 0;
+}
+.activity-item strong,
+.activity-item small {
+  display: block;
+}
+.activity-item small,
+.activity-item > span,
+.empty-inline {
+  color: var(--muted);
+  font-size: 12px;
+}
+.activity-item > span {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.empty-inline {
+  margin: 8px 0 0;
 }
 .toast {
   position: fixed;
@@ -777,14 +853,11 @@ tbody tr:hover {
   .portal {
     grid-template-columns: 210px minmax(0, 1fr);
   }
-  .editor-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .dialog-section:last-child {
-    grid-column: 1/-1;
-  }
 }
 @media (max-width: 780px) {
+  html {
+    scroll-padding-top: 148px;
+  }
   .login-shell {
     grid-template-columns: 1fr;
     gap: 34px;
@@ -812,13 +885,13 @@ tbody tr:hover {
   }
   .admin-nav {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 4px;
   }
   .admin-nav button {
     text-align: center;
     padding: 0 6px;
-    font-size: 12px;
+    font-size: 11px;
   }
   .topbar {
     top: 63px;
@@ -849,8 +922,18 @@ tbody tr:hover {
   .editor-grid {
     grid-template-columns: 1fr;
   }
-  .dialog-section:last-child {
-    grid-column: auto;
+  .table-scroll th:last-child,
+  .table-scroll td:last-child {
+    position: sticky;
+    right: 0;
+    background: var(--surface);
+    box-shadow: -1px 0 var(--line);
+  }
+  .table-scroll th:last-child {
+    background: var(--raised);
+  }
+  .row-action {
+    scroll-margin-top: 148px;
   }
   .safety-panel {
     grid-column: auto;
@@ -894,6 +977,13 @@ tbody tr:hover {
   }
   .account-editor {
     padding: 18px;
+  }
+  .activity-item {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .activity-item > span {
+    text-align: left;
   }
   .toast {
     right: 12px;

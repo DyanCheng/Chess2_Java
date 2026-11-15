@@ -11,4 +11,5 @@ public interface UserRepository extends JpaRepository<UserAccount, UUID> {
     Optional<UserAccount> findByEmailIgnoreCase(String email);
     Optional<UserAccount> findByGuestKey(String guestKey);
     List<UserAccount> findTop20ByOrderByRatingDescExperienceDesc();
+    long countByLockedAtIsNotNull();
 }
